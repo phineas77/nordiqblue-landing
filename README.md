@@ -1,36 +1,57 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NordiQ Blue AB — Website
 
-## Getting Started
+NordiQ Blue AB is the commercial innovation engine powering scalable ocean innovation across Europe.  
+This repository contains the public-facing landing website for NordiQ Blue AB, designed to clearly explain the relationship between:
 
-First, run the development server:
+- **Ocean Community** — the mission-driven ecosystem layer (multi-gateway, non-profit anchored)
+- **NordiQ Blue AB** — the commercial IP + platform engine providing infrastructure, methodology, and programme support through transparent service agreements
 
+> **One ecosystem. Two legal anchors. One commercial engine. Multiple gateways.**
+
+---
+
+## What this site covers
+
+### What we build (NordiQ Blue AB)
+- **Accelerator Frameworks** — proprietary methodologies powering ocean venture acceleration across European gateways
+- **Digital Platform Architecture** — scalable ecosystem infrastructure connecting innovators, mentors, and investors
+- **Playbooks & Curriculum** — licensed learning modules and programme blueprints for ocean innovation
+- **Evaluation & Data Models** — investment-readiness assessment tools and impact measurement frameworks
+- **IP & Licensing** — protected intellectual property with clear service and licensing structures
+- **Corporate Innovation** — paid programmes connecting corporates with ocean startups and blue economy solutions
+
+### Ecosystem structure (multi-gateway model)
+Ocean Community operates through regional gateways that execute locally, adapt to regional strengths, and feed startups into a shared pipeline—without owning separate IP.
+
+Example gateways:
+- **Atlantic Gateway** — Lisbon, Portugal  
+- **Nordic–Baltic Gateway** — Stockholm, Sweden  
+- **Eastern Mediterranean Gateway** — Izmir, Türkiye (consortium model)
+
+---
+
+## Connecting points with Ocean Community
+
+This site is designed to integrate cleanly with Ocean Community through consistent messaging and cross-links:
+
+- On **Ocean Community** pages: **“Powered by NordiQ Blue”**
+- On **NordiQ Blue** pages: **“Provided to Ocean Community”**
+
+Ocean Community (mission) and NordiQ Blue (engine) remain distinct and aligned:
+- **Ocean Community** builds community, literacy, and open innovation pathways
+- **NordiQ Blue** owns the scalable infrastructure, accelerator mechanics, and commercial programme layer
+
+---
+
+## Live site
+
+- Vercel deployment: https://nordiqblue-landing.vercel.app  
+- Ocean Community: https://www.oceancommunitychallenge.com/
+
+---
+
+## Development
+
+Install dependencies:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+npm install
