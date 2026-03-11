@@ -1,8 +1,15 @@
 import type { CSSProperties } from "react";
+import { Montserrat } from "next/font/google";
+
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+  display: "swap",
+});
 
 export default function Home() {
   return (
-    <main style={styles.main}>
+    <main className={montserrat.className} style={styles.main}>
       <style>{responsiveCss}</style>
 
       <div style={styles.backgroundGlowOne} aria-hidden />
@@ -540,7 +547,7 @@ const styles: Record<string, CSSProperties> = {
     color: "#123241",
     background:
       "linear-gradient(180deg, #f6fbfc 0%, #eff8f8 45%, #ffffff 100%)",
-    fontFamily: 'Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif',
+    fontFamily: 'Montserrat, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif',
   },
   backgroundGlowOne: {
     position: "absolute",
