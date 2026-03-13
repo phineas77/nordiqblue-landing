@@ -1,4 +1,7 @@
-import type { CSSProperties } from "react";
+"use client";
+
+import type { CSSProperties, ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Montserrat } from "next/font/google";
 
 const montserrat = Montserrat({
@@ -7,474 +10,466 @@ const montserrat = Montserrat({
   display: "swap",
 });
 
-export default function Home() {
+const palette = {
+  deepNavy: "#000739",
+  nordicBlue: "#0F1A79",
+  scandiBlue: "#1225B6",
+  fjordBlue: "#2F4F8F",
+  iceBlue: "#A1CAF1",
+  lightGray: "#DFDFDF",
+  sandBeige: "#F5DEB3",
+  coralAccent: "#EB675F",
+  white: "#FFFFFF",
+};
+
+const rgba = (hex: string, alpha: number) => {
+  const clean = hex.replace("#", "");
+  const value = clean.length === 3
+    ? clean
+        .split("")
+        .map((char) => char + char)
+        .join("")
+    : clean;
+
+  const int = parseInt(value, 16);
+  const r = (int >> 16) & 255;
+  const g = (int >> 8) & 255;
+  const b = int & 255;
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
+type RevealProps = {
+  children: ReactNode;
+  delay?: number;
+  className?: string;
+};
+
+function Reveal({ children, delay = 0, className }: RevealProps) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setVisible(true);
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.16, rootMargin: "0px 0px -8% 0px" }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <main className={montserrat.className} style={styles.main}>
-      <style>{responsiveCss}</style>
+    <div
+      ref={ref}
+      className={["reveal", visible ? "visible" : "", className ?? ""]
+        .filter(Boolean)
+        .join(" ")}
+      style={{ ["--delay" as string]: `${delay}s` }}
+    >
+      {children}
+    </div>
+  );
+}
 
-      <div style={styles.backgroundGlowOne} aria-hidden />
-      <div style={styles.backgroundGlowTwo} aria-hidden />
+export default function Home() {
+  const gatewaysSectionRef = useRef<HTMLElement | null>(null);
+  const gatewayImageRef = useRef<HTMLDivElement | null>(null);
 
-      <div style={styles.container}>
-        <div style={styles.topBar}>
-          <div style={styles.topBarLeft}>
-            <span style={styles.topBarDot} aria-hidden />
-            <span style={styles.topBarText}>
-              Provided to{" "}
-              <a
-                href="https://www.oceancommunitychallenge.com/"
-                target="_blank"
-                rel="noreferrer"
-                style={styles.topBarLink}
-              >
-                Ocean Community
-              </a>
-            </span>
-          </div>
+  useEffect(() => {
+    const section = gatewaysSectionRef.current;
+    const image = gatewayImageRef.current;
 
-          <div style={styles.topBarRight}>
-            <span style={styles.badgeSmall}>Commercial IP & Engine</span>
-          </div>
+    if (!section || !image) return;
+
+    let frame = 0;
+
+    const updateImagePosition = () => {
+      const rect = section.getBoundingClientRect();
+      const viewportHeight = window.innerHeight || 1;
+      const maxShift = window.innerWidth < 1120 ? 0 : 285;
+      const progress = Math.min(
+        Math.max((viewportHeight - rect.top) / (rect.height + viewportHeight), 0),
+        1
+      );
+
+      image.style.setProperty("--gateway-image-shift", `${(-maxShift * progress).toFixed(2)}px`);
+      frame = 0;
+    };
+
+    const requestTick = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(updateImagePosition);
+    };
+
+    updateImagePosition();
+    window.addEventListener("scroll", requestTick, { passive: true });
+    window.addEventListener("resize", requestTick);
+
+    return () => {
+      if (frame) {
+        window.cancelAnimationFrame(frame);
+      }
+
+      window.removeEventListener("scroll", requestTick);
+      window.removeEventListener("resize", requestTick);
+    };
+  }, []);
+
+  return (
+    <main className={montserrat.className} style={pageStyle}>
+      <style>{globalCss}</style>
+
+      <div className="page-radial page-radial-a" aria-hidden />
+      <div className="page-radial page-radial-b" aria-hidden />
+      <div className="page-radial page-radial-c" aria-hidden />
+      <div className="page-grid" aria-hidden />
+
+      <section className="hero">
+        <div className="hero-backdrop" aria-hidden>
+          <div className="hero-photo" />
+          <div className="hero-mist hero-mist-a" />
+          <div className="hero-mist hero-mist-b" />
+          <div className="hero-wave hero-wave-a" />
+          <div className="hero-wave hero-wave-b" />
+          <div className="hero-wave hero-wave-c" />
+          <div className="hero-wave hero-wave-d" />
         </div>
 
-        <header style={styles.header}>
-          <div style={styles.brand}>
-            <div style={styles.logo} aria-hidden>
-              ⚓
+        <div className="shell hero-shell">
+          <Reveal className="hero-inner">
+            <div className="hero-brand-row">
+              <img
+                src="/nordiqblue-logo-cropped.png"
+                alt="NordiQ Blue"
+                className="hero-logo"
+              />
             </div>
-            <div>
-              <div style={styles.brandName}>NordiQ Blue AB</div>
-              <div style={styles.brandSub}>Strategic innovation infrastructure</div>
+
+            <div className="hero-kicker">Commercial IP & Innovation Engine</div>
+
+            <h1 className="hero-title">
+              Professional infrastructure for the <span>Blue Economy</span>
+            </h1>
+
+            <p className="hero-copy">
+              We build the frameworks, platforms, and methodologies that enable scalable ocean
+              ventures—supporting Ocean Community’s multi-gateway European ecosystem through
+              transparent service and licensing agreements.
+            </p>
+
+            <div className="hero-actions">
+              <a href="#what-we-build" className="primary-cta">
+                Explore the ecosystem
+                <span aria-hidden>→</span>
+              </a>
+              <a href="#contact" className="secondary-cta">
+                Partner with us
+              </a>
             </div>
+          </Reveal>
+        </div>
+      </section>
+
+      <section id="what-we-build" className="section section-dark">
+        <div className="shell">
+          <Reveal className="section-heading center">
+            <div className="eyebrow eyebrow-ice">What we build</div>
+            <h2 className="title title-center">
+              The <span className="ice-word">Blue</span> innovation engine
+            </h2>
+            <p className="section-copy center-copy">
+              NordiQ Blue AB owns and develops the commercial infrastructure that powers Ocean
+              Community’s multi-gateway platform—while keeping legal and operational risk low.
+            </p>
+          </Reveal>
+
+          <div className="service-grid">
+            {capabilities.map((item, index) => (
+              <div key={item.title}>
+                <Reveal delay={index * 0.06} className="service-card-wrap">
+                  <article className="service-card">
+                  <div className="service-icon" aria-hidden>
+                    {item.icon}
+                  </div>
+                  <h3 className="card-title">{item.title}</h3>
+                  <p className="card-copy">{item.desc}</p>
+                  </article>
+                </Reveal>
+              </div>
+            ))}
           </div>
+        </div>
+      </section>
 
-          <nav style={styles.nav}>
-            <a href="#what-we-build" style={styles.navLink}>
-              What we do
-            </a>
-            <a href="#ecosystem" style={styles.navLink}>
-              Ecosystem
-            </a>
-            <a href="#gateways" style={styles.navLink}>
-              Gateways
-            </a>
-            <a href="#how-we-work" style={styles.navLink}>
-              How we work
-            </a>
-            <a href="#contact" style={styles.navLink}>
-              Contact
-            </a>
-          </nav>
-        </header>
+      <section id="ecosystem" className="section section-mesh">
+        <div className="mesh-bg" aria-hidden />
+        <div className="shell split-shell">
+          <Reveal className="split-copy" delay={0.02}>
+            <div className="eyebrow eyebrow-gold">Ecosystem model</div>
+            <h2 className="title split-title">
+              One ecosystem. <span className="gold-word">Two legal anchors.</span> One commercial
+              engine.
+            </h2>
+            <p className="section-copy split-copy-text">
+              Ocean Community operates as a mission-driven ecosystem layer across gateways. Two
+              non-profit anchors (Portugal + Sweden) provide the legal foundation. NordiQ Blue AB
+              provides the commercial engine and protected IP through arm’s-length, transparent
+              service and licensing agreements.
+            </p>
 
-        <section style={styles.heroSection}>
-          <div className="heroGrid" style={styles.heroGrid}>
-            <div>
-              <div style={styles.heroKickerWrap}>
-                <span style={styles.heroKicker}>Commercial IP & Innovation Engine</span>
+            <div className="bullet-list">
+              <div className="bullet-item">
+                <span className="bullet-dot" aria-hidden />
+                <span>Mission-driven ecosystem layer</span>
               </div>
-
-              <h1 style={styles.h1}>
-                Professional infrastructure for the{" "}
-                <span style={styles.accentTeal}>Blue Economy</span>
-              </h1>
-
-              <p style={styles.lead}>
-                We build the frameworks, platforms, and methodologies that enable scalable ocean
-                ventures—supporting Ocean Community’s multi-gateway European ecosystem through
-                transparent service and licensing agreements.
-              </p>
-
-              <div style={styles.heroCtas}>
-                <a href="#ecosystem" style={styles.primaryBtn}>
-                  Explore the ecosystem
-                </a>
-                <a href="#contact" style={styles.secondaryBtn}>
-                  Partner with us
-                </a>
+              <div className="bullet-item">
+                <span className="bullet-dot" aria-hidden />
+                <span>Transparent service &amp; licensing agreements</span>
               </div>
-
-              <div className="heroStats" style={styles.heroStats}>
-                <div style={styles.statCard}>
-                  <div style={styles.statLabel}>Location</div>
-                  <div style={styles.statValue}>Stockholm, Sweden</div>
-                </div>
-                <div style={styles.statCard}>
-                  <div style={styles.statLabel}>Positioning</div>
-                  <div style={styles.statValue}>B2B backend & strategic entity</div>
-                </div>
-                <div style={styles.statCard}>
-                  <div style={styles.statLabel}>Connection</div>
-                  <div style={styles.statValueSmall}>
-                    <span style={styles.miniChip}>Powered by NordiQ Blue</span>
-                    <span style={styles.miniChipAlt}>Provided to Ocean Community</span>
-                  </div>
-                </div>
+              <div className="bullet-item">
+                <span className="bullet-dot" aria-hidden />
+                <span>Commercial IP &amp; engine</span>
               </div>
             </div>
+          </Reveal>
 
-            <aside style={styles.heroPanel}>
-              <div style={styles.heroPanelTop}>
-                <div>
-                  <div style={styles.panelEyebrow}>Operating model</div>
-                  <div style={styles.heroPanelTitle}>One ecosystem, two legal anchors, one engine</div>
-                </div>
-                <div style={styles.panelBadge}>Structured for scale</div>
+          <div className="stack-list">
+            {ecosystemLayers.map((item, index) => (
+              <div key={item.title}>
+                <Reveal delay={0.1 + index * 0.06}>
+                  <article className="stack-row-card">
+                  <div>
+                    <div className="stack-row-title">{item.title}</div>
+                    <div className="stack-row-sub">{item.sub}</div>
+                  </div>
+                  <span className={item.pillClass}>{item.pill}</span>
+                  </article>
+                </Reveal>
               </div>
-
-              <div style={styles.stackDiagram}>
-                <div style={styles.stackItemSoft}>
-                  <div style={styles.stackItemLabel}>Ecosystem layer</div>
-                  <div style={styles.stackItemTitle}>Ocean Community</div>
-                  <div style={styles.stackItemText}>
-                    Community building, ocean literacy, open innovation challenges, and gateway coordination.
-                  </div>
-                </div>
-
-                <div style={styles.stackConnector}>Transparent NGO ↔ company agreements</div>
-
-                <div style={styles.stackItemMid}>
-                  <div style={styles.stackRow}>
-                    <div style={styles.anchorCard}>
-                      <div style={styles.anchorLabel}>Portugal</div>
-                      <div style={styles.anchorTitle}>OC Portugal</div>
-                    </div>
-                    <div style={styles.anchorCard}>
-                      <div style={styles.anchorLabel}>Sweden</div>
-                      <div style={styles.anchorTitle}>OC Sweden</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div style={styles.stackItemStrong}>
-                  <div style={styles.stackItemLabelTeal}>Commercial engine</div>
-                  <div style={styles.stackItemTitle}>NordiQ Blue AB</div>
-                  <div style={styles.stackItemText}>
-                    IP ownership, platform architecture, accelerator methodology, and paid B2B programme delivery.
-                  </div>
-                </div>
-              </div>
-            </aside>
+            ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section id="what-we-build" style={styles.section}>
-          <div style={styles.sectionShell}>
-            <div style={styles.sectionHeaderCenter}>
-              <div style={styles.eyebrow}>What we build</div>
-              <h2 style={styles.h2}>
-                The innovation <span style={styles.accentTeal}>engine</span>
-              </h2>
-              <p style={styles.sectionSub}>
-                NordiQ Blue AB owns and develops the commercial infrastructure that powers Ocean
-                Community’s multi-gateway platform—while keeping legal and operational risk low.
-              </p>
+      <section id="gateways" ref={gatewaysSectionRef} className="section section-dark compact-top">
+        <div className="gateways-bleed">
+          <Reveal className="gateway-visual-column" delay={0.02}>
+            <div className="gateway-visual-frame">
+              <div ref={gatewayImageRef} className="gateway-visual-image" aria-hidden />
+              <div className="gateway-visual-glow" aria-hidden />
             </div>
+          </Reveal>
 
-            <div className="grid6" style={styles.grid6}>
-              {capabilities.map((c) => (
-                <div key={c.title} style={styles.card}>
-                  <div style={styles.cardIcon} aria-hidden>
-                    {c.icon}
-                  </div>
-                  <div style={styles.cardTitle}>{c.title}</div>
-                  <div style={styles.cardDesc}>{c.desc}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section id="ecosystem" style={styles.section}>
-          <div style={styles.sectionShellStrong}>
-            <div className="splitHeader" style={styles.sectionHeader}>
-              <div>
-                <div style={styles.eyebrowGold}>Ecosystem model</div>
-                <h2 style={styles.h2Large}>
-                  One ecosystem. <span style={styles.accentGold}>Two legal anchors.</span> One
-                  commercial engine.
+          <div className="gateway-content-wrap">
+            <div className="gateway-content-column">
+              <Reveal className="split-copy" delay={0.04}>
+                <div className="eyebrow eyebrow-ice">Gateways</div>
+                <h2 className="title split-title">
+                  Multiple regional doors, <span className="ice-word">one unified system</span>
                 </h2>
-                <p style={styles.sectionSubLeft}>
-                  Ocean Community operates as a mission-driven ecosystem layer across gateways. Two
-                  non-profit anchors (Portugal + Sweden) provide the legal foundation. NordiQ Blue AB
-                  provides the commercial engine and protected IP through arm’s-length, transparent
-                  service and licensing agreements.
+                <p className="section-copy split-copy-text">
+                  Gateways execute locally, adapt to regional strengths, and feed startups into a shared
+                  pipeline—without owning separate IP.
                 </p>
-              </div>
+              </Reveal>
 
-              <div style={styles.callout}>
-                <div style={styles.calloutTitle}>Clear connecting points</div>
-                <div style={styles.calloutRow}>
-                  <span style={styles.miniChip}>Powered by NordiQ Blue</span>
-                  <span style={styles.miniChipAlt}>Provided to Ocean Community</span>
-                </div>
-                <div style={styles.calloutText}>
-                  A clearer operating model keeps the ecosystem unified while protecting IP, building
-                  value, and reducing scale risk.
-                </div>
-              </div>
-            </div>
-
-            <div className="ecosystemGrid" style={styles.ecosystemGrid}>
-              <div style={styles.layerCard}>
-                <div style={styles.layerTag}>Ocean Community</div>
-                <div style={styles.layerTitle}>Mission-driven ecosystem layer</div>
-                <div style={styles.layerDesc}>
-                  Community building, ocean literacy (open), open innovation challenges, and gateway
-                  coordination across Europe.
-                </div>
-                <div style={styles.layerFooter}>
-                  <span style={styles.pillSoft}>Connect</span>
-                  <span style={styles.pillSoft}>Learn</span>
-                  <span style={styles.pillSoft}>Innovate</span>
-                </div>
-              </div>
-
-              <div style={styles.layerCard}>
-                <div style={styles.layerTag}>Non-profit anchors</div>
-                <div style={styles.layerTitle}>OC Portugal + OC Sweden</div>
-                <div style={styles.layerDesc}>
-                  Two separate legal entities under one ecosystem—ensuring mission alignment and a
-                  stable foundation for growth.
-                </div>
-                <div style={styles.layerFooter}>
-                  <span style={styles.pillSoftAlt}>Portugal (Lisbon)</span>
-                  <span style={styles.pillSoftAlt}>Sweden (Stockholm)</span>
-                </div>
-              </div>
-
-              <div style={styles.layerCardStrong}>
-                <div style={styles.layerTagTeal}>NordiQ Blue AB</div>
-                <div style={styles.layerTitle}>Commercial IP & engine</div>
-                <div style={styles.layerDesc}>
-                  Owns and develops accelerator mechanics, digital infrastructure, methodologies,
-                  curriculum, and evaluation models—licensed/provided to Ocean Community.
-                </div>
-
-                <div style={styles.layerFooter}>
-                  <span style={styles.pillStrong}>IP holder</span>
-                  <span style={styles.pillStrong}>Platform engine</span>
-                  <span style={styles.pillStrong}>B2B programmes</span>
-                </div>
-              </div>
-
-              <div style={styles.layerCard}>
-                <div style={styles.layerTag}>Operating model</div>
-                <div style={styles.layerTitle}>Service & licensing agreements</div>
-                <div style={styles.layerDesc}>
-                  Arm’s-length, transparent agreements between NGOs and NordiQ Blue AB for platform,
-                  execution support, and licensing—enabling scale without legal burden.
-                </div>
-                <div style={styles.layerFooter}>
-                  <span style={styles.pillSoft}>Transparent</span>
-                  <span style={styles.pillSoft}>Arm’s-length</span>
-                  <span style={styles.pillSoft}>Low risk</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="gateways" style={styles.section}>
-          <div style={styles.sectionShell}>
-            <div style={styles.sectionHeaderCenter}>
-              <div style={styles.eyebrow}>Gateways</div>
-              <h2 style={styles.h2}>
-                Multiple <span style={styles.accentTeal}>regional doors</span>, one unified system
-              </h2>
-              <p style={styles.sectionSub}>
-                Gateways execute locally, adapt to regional strengths, and feed startups into a shared
-                pipeline—without owning separate IP.
-              </p>
-            </div>
-
-            <div className="grid3" style={styles.grid3}>
-              {gateways.map((g) => (
-                <div key={g.title} style={styles.gatewayCard}>
-                  <div style={styles.gatewayTop}>
-                    <div>
-                      <div style={styles.gatewayTitle}>{g.title}</div>
-                      <div style={styles.gatewayLoc}>{g.location}</div>
-                    </div>
-                    <span
-                      style={g.status === "Consortium" ? styles.statusGold : styles.statusTeal}
-                    >
-                      {g.status.toUpperCase()}
-                    </span>
-                  </div>
-
-                  <div style={styles.gatewayBody}>{g.body}</div>
-
-                  <div style={styles.gatewayFooter}>
-                    <span style={styles.pillSoft}>{g.tag1}</span>
-                    <span style={styles.pillSoft}>{g.tag2}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section id="how-we-work" style={styles.section}>
-          <div style={styles.sectionShell}>
-            <div className="splitHeader" style={styles.sectionHeader}>
-              <div>
-                <div style={styles.eyebrowGold}>How we work</div>
-                <h2 style={styles.h2Large}>
-                  Built to <span style={styles.accentGold}>scale with clarity</span>
-                </h2>
-                <p style={styles.sectionSubLeft}>
-                  NordiQ Blue AB supports Ocean Community through clear service agreements. The goal
-                  is to build durable value and protect IP while keeping the ecosystem mission-driven
-                  and operationally stable.
-                </p>
-              </div>
-
-              <div style={styles.sidePanel}>
-                <div style={styles.sidePanelTitle}>Programme ownership (simplified)</div>
-                <div style={styles.table}>
-                  {programmeRows.map((r) => (
-                    <div key={r.type} style={styles.row}>
-                      <div style={styles.rowLeft}>{r.type}</div>
-                      <div style={styles.rowRight}>
-                        <span style={styles.rowChip}>{r.owner}</span>
-                        <span style={styles.rowChipAlt}>{r.ip}</span>
+              <div className="stack-list">
+                {gateways.map((item, index) => (
+                  <div key={item.title}>
+                    <Reveal delay={0.08 + index * 0.06}>
+                      <article className="stack-row-card gateway-row">
+                      <div>
+                        <div className="stack-row-title">{item.title}</div>
+                        <div className="stack-row-sub">{item.location}</div>
+                        <p className="gateway-copy">{item.body}</p>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                      <div className="gateway-side">
+                        <span className={item.status === "Consortium" ? "status-pill gold" : "status-pill ice"}>
+                          {item.status.toUpperCase()}
+                        </span>
+                        <div className="gateway-tags">
+                          <span>{item.tag1}</span>
+                          <span>{item.tag2}</span>
+                        </div>
+                      </div>
+                      </article>
+                    </Reveal>
+                  </div>
+                ))}
               </div>
             </div>
+          </div>
+        </div>
+      </section>
 
-            <div className="grid3" style={styles.grid3}>
-              {workCards.map((w) => (
-                <div key={w.title} style={styles.cardWide}>
-                  <div style={styles.cardWideTop}>
-                    <div style={styles.cardIcon} aria-hidden>
-                      {w.icon}
+      <section id="how-we-work" className="section section-dark work-section">
+        <div className="shell">
+          <Reveal className="section-heading center narrow" delay={0.02}>
+            <div className="eyebrow eyebrow-gold">How we work</div>
+            <h2 className="title title-center">
+              Built to <span className="gold-word">scale with clarity</span>
+            </h2>
+            <p className="section-copy center-copy">
+              NordiQ Blue AB supports Ocean Community through clear service agreements. The goal is
+              to build durable value and protect IP while keeping the ecosystem mission-driven and
+              operationally stable.
+            </p>
+          </Reveal>
+
+          <Reveal delay={0.08} className="programme-panel-wrap">
+            <div className="programme-panel">
+              <div className="programme-title">Programme ownership (simplified)</div>
+              <div className="programme-table">
+                {programmeRows.map((row) => (
+                  <div key={row.type} className="programme-row">
+                    <div className="programme-type">{row.type}</div>
+                    <div className="programme-values">
+                      <span className="programme-chip">{row.owner}</span>
+                      <span className="programme-chip soft">{row.ip}</span>
                     </div>
-                    <div style={styles.cardTitle}>{w.title}</div>
                   </div>
-                  <div style={styles.cardDesc}>{w.desc}</div>
-                  <div style={styles.bullets}>
-                    {w.bullets.map((b) => (
-                      <div key={b} style={styles.bullet}>
-                        <span style={styles.bulletDot} aria-hidden />
-                        <span>{b}</span>
+                ))}
+              </div>
+            </div>
+          </Reveal>
+
+          <div className="work-grid">
+            {workCards.map((item, index) => (
+              <div key={item.title}>
+                <Reveal delay={0.12 + index * 0.06}>
+                  <article className="work-card">
+                  <div className="service-icon" aria-hidden>
+                    {item.icon}
+                  </div>
+                  <h3 className="card-title">{item.title}</h3>
+                  <p className="card-copy">{item.desc}</p>
+                  <div className="mini-bullets">
+                    {item.bullets.map((bullet) => (
+                      <div key={bullet} className="mini-bullet">
+                        <span className="mini-bullet-dot" aria-hidden />
+                        <span>{bullet}</span>
                       </div>
                     ))}
                   </div>
-                </div>
-              ))}
-            </div>
+                  </article>
+                </Reveal>
+              </div>
+            ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section id="contact" style={styles.footerSection}>
-          <div style={styles.footerShell}>
-            <div className="footerGrid" style={styles.footerGrid}>
-              <div>
-                <div style={styles.footerBrand}>
-                  <div style={styles.logo} aria-hidden>
-                    ⚓
-                  </div>
-                  <div>
-                    <div style={styles.brandName}>NordiQ Blue</div>
-                    <div style={styles.brandSub}>Commercial IP & innovation engine</div>
-                  </div>
-                </div>
-
-                <p style={styles.footerText}>
-                  Strategic innovation infrastructure for the blue economy. Registered in Stockholm,
-                  Sweden.
-                </p>
-
-                <div style={styles.footerFine}>
-                  © {new Date().getFullYear()} NordiQ Blue AB. All rights reserved.
-                </div>
+      <footer id="contact" className="footer">
+        <div className="shell footer-shell">
+          <Reveal className="footer-grid" delay={0.02}>
+            <div>
+              <div className="footer-brand-row">
+                <img
+                  src="/nordiqblue-logo-cropped.png"
+                  alt="NordiQ Blue"
+                  className="footer-logo"
+                />
               </div>
+              <p className="footer-copy">
+                Strategic innovation infrastructure for the blue economy. Registered in Stockholm,
+                Sweden.
+              </p>
+            </div>
 
-              <div>
-                <div style={styles.footerTitle}>Ecosystem</div>
-                <div style={styles.footerLinks}>
-                  <a
-                    href="https://www.oceancommunitychallenge.com/"
-                    target="_blank"
-                    rel="noreferrer"
-                    style={styles.footerLink}
-                  >
-                    Ocean Community
-                  </a>
-                  <span style={styles.footerMuted}>Accelerator programmes</span>
-                  <span style={styles.footerMuted}>Partner network</span>
-                  <span style={styles.footerMuted}>Innovation platform</span>
-                </div>
-              </div>
-
-              <div>
-                <div style={styles.footerTitle}>Contact</div>
-                <div style={styles.footerContact}>
-                  <div>📍 Stockholm, Sweden</div>
-                  <div>
-                    ✉️{" "}
-                    <a href="mailto:info@nordiqblue.com" style={styles.footerLink}>
-                      info@nordiqblue.com
-                    </a>
-                  </div>
-                </div>
-
-                <div style={styles.footerProvided}>
-                  <span style={{ opacity: 0.65 }}>Provided to </span>
-                  <a
-                    href="https://www.oceancommunitychallenge.com/"
-                    target="_blank"
-                    rel="noreferrer"
-                    style={styles.footerLinkTeal}
-                  >
-                    Ocean Community
-                  </a>
-                  <span style={{ opacity: 0.65 }}> • </span>
-                  <span style={styles.footerPowered}>Powered by NordiQ Blue</span>
-                </div>
+            <div>
+              <div className="footer-heading">Ecosystem</div>
+              <div className="footer-links">
+                <a href="https://www.oceancommunitychallenge.com/" target="_blank" rel="noreferrer">
+                  Ocean Community
+                </a>
+                <span>Accelerator programmes</span>
+                <span>Partner network</span>
+                <span>Innovation platform</span>
               </div>
             </div>
-          </div>
-        </section>
-      </div>
+
+            <div>
+              <div className="footer-heading">Contact</div>
+              <div className="footer-links">
+                <span>📍 Stockholm, Sweden</span>
+                <a href="mailto:info@nordiqblue.com">✉️ info@nordiqblue.com</a>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </footer>
     </main>
   );
 }
 
 const capabilities = [
   {
-    icon: "🚀",
+    icon: "↗",
     title: "Accelerator Frameworks",
     desc: "Proprietary methodologies powering ocean venture acceleration across European gateways.",
   },
   {
-    icon: "🧩",
+    icon: "▣",
     title: "Digital Platform Architecture",
     desc: "Scalable ecosystem infrastructure connecting innovators, mentors, and investors.",
   },
   {
-    icon: "📘",
+    icon: "☰",
     title: "Playbooks & Curriculum",
     desc: "Licensed learning modules and programme blueprints for ocean innovation.",
   },
   {
-    icon: "🛡️",
+    icon: "◇",
     title: "IP & Licensing",
-    desc: "Protected intellectual property with transparent service & licensing structures for NGO partners.",
+    desc: "Protected intellectual property with transparent service agreements for NGO partners.",
   },
   {
-    icon: "📊",
+    icon: "▥",
     title: "Evaluation & Data Models",
-    desc: "Investment-readiness tools and impact measurement frameworks to support decision-making.",
+    desc: "Investment-readiness assessment tools and impact measurement frameworks.",
   },
   {
-    icon: "🤝",
+    icon: "◎",
     title: "Corporate Innovation",
     desc: "Paid programmes connecting corporates with ocean startups and blue economy solutions.",
+  },
+];
+
+const ecosystemLayers = [
+  {
+    title: "Ocean Community",
+    sub: "Mission-driven ecosystem layer",
+    pill: "ECOSYSTEM",
+    pillClass: "status-pill soft",
+  },
+  {
+    title: "OC Portugal + OC Sweden",
+    sub: "Two non-profit legal anchors",
+    pill: "FOUNDATION",
+    pillClass: "status-pill gold",
+  },
+  {
+    title: "NordiQ Blue AB",
+    sub: "Commercial IP & engine",
+    pill: "ENGINE",
+    pillClass: "status-pill ice",
+  },
+  {
+    title: "Service & licensing agreements",
+    sub: "Transparent operating model",
+    pill: "LOW RISK",
+    pillClass: "status-pill soft",
   },
 ];
 
@@ -520,678 +515,1021 @@ const programmeRows = [
 
 const workCards = [
   {
-    icon: "🧭",
+    icon: "◌",
     title: "Service agreements",
     desc: "Clear delivery model for platform and execution support—transparent and scalable.",
     bullets: ["Arm’s-length agreements", "Defined deliverables", "Low legal burden for gateways"],
   },
   {
-    icon: "⚙️",
+    icon: "◫",
     title: "Platform infrastructure",
     desc: "Digital architecture powering multi-gateway operations and shared pipeline workflows.",
     bullets: ["Ecosystem tooling", "Shared evaluation models", "Reliable & secure operations"],
   },
   {
-    icon: "📜",
+    icon: "▭",
     title: "Licensing & curriculum",
     desc: "Protected methodologies and learning modules licensed via Ocean Community where relevant.",
     bullets: ["Playbooks & frameworks", "Certification programmes (paid)", "IP protection & value creation"],
   },
 ];
 
-const styles: Record<string, CSSProperties> = {
-  main: {
-    minHeight: "100vh",
-    position: "relative",
-    overflow: "hidden",
-    color: "#123241",
-    background:
-      "linear-gradient(180deg, #f6fbfc 0%, #eff8f8 45%, #ffffff 100%)",
-    fontFamily: 'Montserrat, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif',
-  },
-  backgroundGlowOne: {
-    position: "absolute",
-    inset: "-140px auto auto -120px",
-    width: 420,
-    height: 420,
-    borderRadius: 999,
-    background: "radial-gradient(circle, rgba(31,230,209,0.18) 0%, rgba(31,230,209,0) 72%)",
-    pointerEvents: "none",
-  },
-  backgroundGlowTwo: {
-    position: "absolute",
-    inset: "160px -80px auto auto",
-    width: 420,
-    height: 420,
-    borderRadius: 999,
-    background: "radial-gradient(circle, rgba(255,192,77,0.16) 0%, rgba(255,192,77,0) 72%)",
-    pointerEvents: "none",
-  },
-  container: {
-    maxWidth: 1180,
-    margin: "0 auto",
-    padding: "22px 20px 72px",
-    position: "relative",
-    zIndex: 1,
-  },
-
-  topBar: {
-    display: "flex",
-    justifyContent: "space-between",
-    gap: 12,
-    alignItems: "center",
-    padding: "12px 14px",
-    borderRadius: 18,
-    border: "1px solid rgba(18,50,65,0.08)",
-    background: "rgba(255,255,255,0.78)",
-    boxShadow: "0 8px 30px rgba(17, 55, 74, 0.06)",
-    backdropFilter: "blur(10px)",
-    marginBottom: 16,
-  },
-  topBarLeft: { display: "flex", alignItems: "center", gap: 10 },
-  topBarRight: { display: "flex", alignItems: "center", gap: 10 },
-  topBarDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 999,
-    background: "#10c8b6",
-    boxShadow: "0 0 0 5px rgba(16,200,182,0.12)",
-  },
-  topBarText: { fontSize: 13, color: "#4a6471" },
-  topBarLink: { color: "#0b9388", textDecoration: "none", fontWeight: 800 },
-  badgeSmall: {
-    fontSize: 11,
-    letterSpacing: 1.2,
-    textTransform: "uppercase",
-    padding: "7px 11px",
-    borderRadius: 999,
-    border: "1px solid rgba(11,147,136,0.16)",
-    background: "rgba(16,200,182,0.10)",
-    color: "#086c67",
-    fontWeight: 800,
-  },
-
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    gap: 18,
-    alignItems: "center",
-    flexWrap: "wrap",
-    padding: "18px 4px 8px",
-    marginBottom: 10,
-  },
-  brand: { display: "flex", alignItems: "center", gap: 12 },
-  logo: {
-    width: 46,
-    height: 46,
-    borderRadius: 16,
-    display: "grid",
-    placeItems: "center",
-    background: "linear-gradient(180deg, rgba(16,200,182,0.12), rgba(16,200,182,0.06))",
-    border: "1px solid rgba(11,147,136,0.14)",
-    color: "#0b706a",
-    boxShadow: "0 12px 24px rgba(17,55,74,0.06)",
-  },
-  brandName: { fontWeight: 850, letterSpacing: 0.2, fontSize: 17, color: "#123241" },
-  brandSub: { fontSize: 13, color: "#69818d", marginTop: 2 },
-
-  nav: { display: "flex", gap: 18, fontSize: 14, flexWrap: "wrap" },
-  navLink: { color: "#35515f", textDecoration: "none", fontWeight: 600 },
-
-  heroSection: {
-    padding: "26px 0 18px",
-  },
-  heroGrid: {
-    display: "grid",
-    gridTemplateColumns: "minmax(0, 1.1fr) minmax(340px, 0.9fr)",
-    gap: 28,
-    alignItems: "stretch",
-  },
-  heroKickerWrap: { display: "inline-flex" },
-  heroKicker: {
-    fontSize: 12,
-    letterSpacing: 2.2,
-    textTransform: "uppercase",
-    color: "#08756e",
-    padding: "9px 13px",
-    borderRadius: 999,
-    border: "1px solid rgba(11,147,136,0.14)",
-    background: "rgba(16,200,182,0.10)",
-    fontWeight: 800,
-  },
-  h1: {
-    fontSize: 62,
-    lineHeight: 1.02,
-    margin: "18px 0 14px",
-    color: "#0f2c3c",
-    letterSpacing: -1.4,
-    maxWidth: 760,
-  },
-  lead: {
-    fontSize: 18,
-    lineHeight: 1.8,
-    color: "#516874",
-    margin: 0,
-    maxWidth: 760,
-  },
-  heroCtas: { display: "flex", gap: 12, marginTop: 28, flexWrap: "wrap" },
-  primaryBtn: {
-    background: "linear-gradient(180deg, #0fcdbb, #09b9a8)",
-    color: "#ffffff",
-    padding: "13px 20px",
-    borderRadius: 999,
-    textDecoration: "none",
-    fontWeight: 800,
-    fontSize: 14,
-    boxShadow: "0 14px 32px rgba(16,200,182,0.22)",
-  },
-  secondaryBtn: {
-    background: "rgba(255,255,255,0.72)",
-    color: "#17394a",
-    padding: "13px 20px",
-    borderRadius: 999,
-    textDecoration: "none",
-    fontWeight: 800,
-    fontSize: 14,
-    border: "1px solid rgba(18,50,65,0.10)",
-    boxShadow: "0 10px 24px rgba(17,55,74,0.05)",
-  },
-  heroStats: {
-    display: "grid",
-    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-    gap: 14,
-    marginTop: 24,
-  },
-  statCard: {
-    border: "1px solid rgba(18,50,65,0.08)",
-    background: "rgba(255,255,255,0.82)",
-    borderRadius: 20,
-    padding: 16,
-    boxShadow: "0 16px 34px rgba(17,55,74,0.06)",
-  },
-  statLabel: {
-    fontSize: 11,
-    letterSpacing: 1.5,
-    textTransform: "uppercase",
-    color: "#78909a",
-    fontWeight: 800,
-  },
-  statValue: { marginTop: 7, color: "#17394a", lineHeight: 1.5, fontWeight: 700 },
-  statValueSmall: {
-    marginTop: 8,
-    display: "flex",
-    gap: 8,
-    flexWrap: "wrap",
-  },
-  miniChip: {
-    display: "inline-flex",
-    alignItems: "center",
-    padding: "5px 10px",
-    borderRadius: 999,
-    border: "1px solid rgba(11,147,136,0.16)",
-    background: "rgba(16,200,182,0.08)",
-    color: "#08756e",
-    fontSize: 12,
-    fontWeight: 800,
-  },
-  miniChipAlt: {
-    display: "inline-flex",
-    alignItems: "center",
-    padding: "5px 10px",
-    borderRadius: 999,
-    border: "1px solid rgba(209,153,40,0.18)",
-    background: "rgba(255,192,77,0.14)",
-    color: "#8a6220",
-    fontSize: 12,
-    fontWeight: 800,
-  },
-
-  heroPanel: {
-    border: "1px solid rgba(18,50,65,0.08)",
-    background: "linear-gradient(180deg, rgba(255,255,255,0.92), rgba(245,252,252,0.95))",
-    borderRadius: 28,
-    padding: 24,
-    boxShadow: "0 22px 50px rgba(17,55,74,0.08)",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
-  },
-  heroPanelTop: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    gap: 16,
-    marginBottom: 18,
-  },
-  panelEyebrow: {
-    color: "#78909a",
-    textTransform: "uppercase",
-    letterSpacing: 1.8,
-    fontSize: 11,
-    fontWeight: 800,
-    marginBottom: 8,
-  },
-  heroPanelTitle: {
-    fontSize: 26,
-    lineHeight: 1.15,
-    color: "#123241",
-    fontWeight: 850,
-    maxWidth: 340,
-  },
-  panelBadge: {
-    whiteSpace: "nowrap",
-    fontSize: 11,
-    fontWeight: 800,
-    color: "#08756e",
-    border: "1px solid rgba(11,147,136,0.16)",
-    background: "rgba(16,200,182,0.08)",
-    borderRadius: 999,
-    padding: "8px 10px",
-  },
-  stackDiagram: { display: "grid", gap: 14 },
-  stackItemSoft: {
-    borderRadius: 22,
-    padding: 18,
-    background: "#ffffff",
-    border: "1px solid rgba(18,50,65,0.07)",
-    boxShadow: "0 12px 28px rgba(17,55,74,0.05)",
-  },
-  stackItemMid: {
-    borderRadius: 22,
-    padding: 16,
-    background: "rgba(238,247,248,0.9)",
-    border: "1px solid rgba(18,50,65,0.06)",
-  },
-  stackItemStrong: {
-    borderRadius: 22,
-    padding: 18,
-    background: "linear-gradient(180deg, rgba(16,200,182,0.12), rgba(16,200,182,0.06))",
-    border: "1px solid rgba(11,147,136,0.14)",
-  },
-  stackConnector: {
-    justifySelf: "center",
-    fontSize: 12,
-    color: "#5f7681",
-    padding: "6px 12px",
-    borderRadius: 999,
-    background: "rgba(255,255,255,0.88)",
-    border: "1px solid rgba(18,50,65,0.08)",
-  },
-  stackItemLabel: {
-    color: "#6e8490",
-    fontSize: 11,
-    textTransform: "uppercase",
-    letterSpacing: 1.7,
-    fontWeight: 800,
-    marginBottom: 8,
-  },
-  stackItemLabelTeal: {
-    color: "#08756e",
-    fontSize: 11,
-    textTransform: "uppercase",
-    letterSpacing: 1.7,
-    fontWeight: 900,
-    marginBottom: 8,
-  },
-  stackItemTitle: {
-    fontSize: 20,
-    lineHeight: 1.15,
-    color: "#123241",
-    fontWeight: 850,
-    marginBottom: 8,
-  },
-  stackItemText: {
-    fontSize: 14,
-    lineHeight: 1.65,
-    color: "#526874",
-  },
-  stackRow: {
-    display: "grid",
-    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-    gap: 12,
-  },
-  anchorCard: {
-    borderRadius: 18,
-    background: "rgba(255,255,255,0.86)",
-    border: "1px solid rgba(18,50,65,0.07)",
-    padding: 14,
-  },
-  anchorLabel: {
-    color: "#7b919b",
-    fontSize: 11,
-    textTransform: "uppercase",
-    letterSpacing: 1.5,
-    fontWeight: 800,
-    marginBottom: 6,
-  },
-  anchorTitle: {
-    color: "#123241",
-    fontSize: 16,
-    fontWeight: 800,
-  },
-
-  section: { padding: "20px 0 8px" },
-  sectionShell: {
-    background: "rgba(255,255,255,0.82)",
-    border: "1px solid rgba(18,50,65,0.07)",
-    borderRadius: 30,
-    padding: "34px 30px",
-    boxShadow: "0 20px 48px rgba(17,55,74,0.06)",
-  },
-  sectionShellStrong: {
-    background: "linear-gradient(180deg, rgba(255,255,255,0.9), rgba(248,252,252,0.96))",
-    border: "1px solid rgba(18,50,65,0.07)",
-    borderRadius: 30,
-    padding: "34px 30px",
-    boxShadow: "0 20px 48px rgba(17,55,74,0.06)",
-  },
-  sectionHeaderCenter: { textAlign: "center", maxWidth: 860, margin: "0 auto 18px" },
-  sectionHeader: {
-    display: "grid",
-    gridTemplateColumns: "1.15fr 0.85fr",
-    gap: 20,
-    alignItems: "start",
-    marginBottom: 20,
-  },
-  eyebrow: {
-    color: "#0b9388",
-    fontSize: 12,
-    letterSpacing: 2.5,
-    textTransform: "uppercase",
-    fontWeight: 800,
-  },
-  eyebrowGold: {
-    color: "#bb7c16",
-    fontSize: 12,
-    letterSpacing: 2.5,
-    textTransform: "uppercase",
-    fontWeight: 800,
-  },
-  h2: { fontSize: 42, margin: "10px 0 10px", lineHeight: 1.08, color: "#123241" },
-  h2Large: { fontSize: 46, margin: "10px 0 12px", lineHeight: 1.06, color: "#123241" },
-  sectionSub: { color: "#58707b", margin: 0, lineHeight: 1.8 },
-  sectionSubLeft: { color: "#58707b", margin: 0, lineHeight: 1.8, maxWidth: 720 },
-  accentTeal: { color: "#0bb4a5" },
-  accentGold: { color: "#d09128" },
-
-  grid6: {
-    display: "grid",
-    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-    gap: 16,
-    marginTop: 22,
-  },
-  grid3: {
-    display: "grid",
-    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-    gap: 16,
-    marginTop: 20,
-  },
-  card: {
-    border: "1px solid rgba(18,50,65,0.07)",
-    borderRadius: 22,
-    padding: 22,
-    background: "linear-gradient(180deg, #ffffff, #fbfefe)",
-    boxShadow: "0 14px 30px rgba(17,55,74,0.05)",
-  },
-  cardIcon: {
-    width: 46,
-    height: 46,
-    borderRadius: 16,
-    display: "grid",
-    placeItems: "center",
-    background: "rgba(16,200,182,0.10)",
-    border: "1px solid rgba(11,147,136,0.12)",
-    marginBottom: 14,
-    fontSize: 18,
-  },
-  cardTitle: { fontWeight: 850, fontSize: 19, marginBottom: 8, color: "#123241" },
-  cardDesc: { color: "#5a717c", fontSize: 14, lineHeight: 1.7 },
-
-  callout: {
-    border: "1px solid rgba(18,50,65,0.08)",
-    background: "rgba(255,255,255,0.86)",
-    borderRadius: 24,
-    padding: 18,
-    boxShadow: "0 14px 30px rgba(17,55,74,0.05)",
-  },
-  calloutTitle: { fontWeight: 900, marginBottom: 10, color: "#123241" },
-  calloutRow: { display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 10 },
-  calloutText: { color: "#59707b", lineHeight: 1.65, fontSize: 14 },
-  ecosystemGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-    gap: 16,
-    marginTop: 14,
-  },
-  layerCard: {
-    border: "1px solid rgba(18,50,65,0.07)",
-    background: "rgba(255,255,255,0.84)",
-    borderRadius: 24,
-    padding: 22,
-    boxShadow: "0 14px 30px rgba(17,55,74,0.05)",
-  },
-  layerCardStrong: {
-    border: "1px solid rgba(11,147,136,0.16)",
-    background: "linear-gradient(180deg, rgba(16,200,182,0.12), rgba(255,255,255,0.9))",
-    borderRadius: 24,
-    padding: 22,
-    boxShadow: "0 14px 30px rgba(17,55,74,0.05)",
-  },
-  layerTag: {
-    display: "inline-flex",
-    fontSize: 11,
-    letterSpacing: 1.6,
-    textTransform: "uppercase",
-    padding: "7px 10px",
-    borderRadius: 999,
-    border: "1px solid rgba(18,50,65,0.08)",
-    background: "rgba(245,249,250,0.95)",
-    color: "#6f8791",
-    marginBottom: 12,
-    fontWeight: 800,
-  },
-  layerTagTeal: {
-    display: "inline-flex",
-    fontSize: 11,
-    letterSpacing: 1.6,
-    textTransform: "uppercase",
-    padding: "7px 10px",
-    borderRadius: 999,
-    border: "1px solid rgba(11,147,136,0.16)",
-    background: "rgba(16,200,182,0.10)",
-    color: "#08756e",
-    marginBottom: 12,
-    fontWeight: 900,
-  },
-  layerTitle: { fontSize: 19, fontWeight: 900, marginBottom: 8, color: "#123241" },
-  layerDesc: { color: "#5a717c", lineHeight: 1.7, fontSize: 14 },
-  layerFooter: { display: "flex", flexWrap: "wrap", gap: 8, marginTop: 14 },
-  pillSoft: {
-    fontSize: 12,
-    padding: "7px 10px",
-    borderRadius: 999,
-    border: "1px solid rgba(18,50,65,0.08)",
-    background: "rgba(245,249,250,0.96)",
-    color: "#506874",
-    fontWeight: 700,
-  },
-  pillSoftAlt: {
-    fontSize: 12,
-    padding: "7px 10px",
-    borderRadius: 999,
-    border: "1px solid rgba(209,153,40,0.16)",
-    background: "rgba(255,192,77,0.14)",
-    color: "#8a6220",
-    fontWeight: 800,
-  },
-  pillStrong: {
-    fontSize: 12,
-    padding: "7px 10px",
-    borderRadius: 999,
-    border: "1px solid rgba(11,147,136,0.16)",
-    background: "rgba(16,200,182,0.09)",
-    color: "#08756e",
-    fontWeight: 900,
-  },
-
-  gatewayCard: {
-    border: "1px solid rgba(18,50,65,0.07)",
-    borderRadius: 24,
-    padding: 22,
-    background: "#ffffff",
-    boxShadow: "0 14px 30px rgba(17,55,74,0.05)",
-  },
-  gatewayTop: {
-    display: "flex",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    gap: 12,
-    marginBottom: 12,
-  },
-  gatewayTitle: { fontWeight: 900, fontSize: 19, color: "#123241" },
-  gatewayLoc: { color: "#718894", marginTop: 4 },
-  statusTeal: {
-    padding: "7px 10px",
-    borderRadius: 999,
-    background: "rgba(16,200,182,0.10)",
-    border: "1px solid rgba(11,147,136,0.16)",
-    color: "#08756e",
-    fontWeight: 900,
-    fontSize: 12,
-  },
-  statusGold: {
-    padding: "7px 10px",
-    borderRadius: 999,
-    background: "rgba(255,192,77,0.14)",
-    border: "1px solid rgba(209,153,40,0.16)",
-    color: "#8a6220",
-    fontWeight: 900,
-    fontSize: 12,
-  },
-  gatewayBody: { color: "#59707b", lineHeight: 1.7, fontSize: 14 },
-  gatewayFooter: { display: "flex", flexWrap: "wrap", gap: 8, marginTop: 14 },
-
-  sidePanel: {
-    border: "1px solid rgba(18,50,65,0.07)",
-    background: "#ffffff",
-    borderRadius: 24,
-    padding: 18,
-    boxShadow: "0 14px 30px rgba(17,55,74,0.05)",
-  },
-  sidePanelTitle: { fontWeight: 900, marginBottom: 10, color: "#123241" },
-  table: { display: "grid", gap: 10 },
-  row: {
-    display: "flex",
-    justifyContent: "space-between",
-    gap: 10,
-    alignItems: "flex-start",
-    borderTop: "1px solid rgba(18,50,65,0.06)",
-    paddingTop: 10,
-  },
-  rowLeft: { fontSize: 13, color: "#35515f", maxWidth: 260, lineHeight: 1.45, fontWeight: 600 },
-  rowRight: { display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" },
-  rowChip: {
-    fontSize: 12,
-    padding: "6px 10px",
-    borderRadius: 999,
-    border: "1px solid rgba(11,147,136,0.16)",
-    background: "rgba(16,200,182,0.08)",
-    color: "#08756e",
-    fontWeight: 900,
-  },
-  rowChipAlt: {
-    fontSize: 12,
-    padding: "6px 10px",
-    borderRadius: 999,
-    border: "1px solid rgba(18,50,65,0.08)",
-    background: "rgba(245,249,250,0.95)",
-    color: "#59707b",
-    fontWeight: 700,
-  },
-  cardWide: {
-    border: "1px solid rgba(18,50,65,0.07)",
-    borderRadius: 24,
-    padding: 22,
-    background: "#ffffff",
-    boxShadow: "0 14px 30px rgba(17,55,74,0.05)",
-  },
-  cardWideTop: { display: "flex", gap: 10, alignItems: "center", marginBottom: 10 },
-  bullets: { display: "grid", gap: 8, marginTop: 14 },
-  bullet: {
-    display: "flex",
-    gap: 10,
-    alignItems: "flex-start",
-    color: "#54707b",
-    fontSize: 14,
-    lineHeight: 1.6,
-  },
-  bulletDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 999,
-    background: "#0bb4a5",
-    marginTop: 7,
-    flex: "0 0 auto",
-  },
-
-  footerSection: { padding: "24px 0 0" },
-  footerShell: {
-    background: "linear-gradient(180deg, rgba(255,255,255,0.88), rgba(244,250,251,0.96))",
-    border: "1px solid rgba(18,50,65,0.07)",
-    borderRadius: 30,
-    padding: "28px 30px",
-    boxShadow: "0 20px 48px rgba(17,55,74,0.06)",
-  },
-  footerGrid: {
-    display: "grid",
-    gridTemplateColumns: "1.2fr 0.8fr 0.8fr",
-    gap: 18,
-  },
-  footerBrand: { display: "flex", gap: 12, alignItems: "center" },
-  footerText: { color: "#5c737d", lineHeight: 1.8, marginTop: 12, maxWidth: 520 },
-  footerFine: { color: "#8396a0", fontSize: 13, marginTop: 16 },
-  footerTitle: {
-    fontWeight: 900,
-    letterSpacing: 1.6,
-    textTransform: "uppercase",
-    fontSize: 12,
-    color: "#35515f",
-    marginBottom: 12,
-  },
-  footerLinks: { display: "grid", gap: 10 },
-  footerLink: { color: "#17394a", textDecoration: "none", fontWeight: 700 },
-  footerLinkTeal: { color: "#0b9388", textDecoration: "none", fontWeight: 900 },
-  footerMuted: { color: "#6f8791" },
-  footerContact: { color: "#54707b", lineHeight: 1.9 },
-  footerProvided: { marginTop: 14, fontSize: 13, color: "#48636f" },
-  footerPowered: {
-    display: "inline-flex",
-    padding: "4px 9px",
-    borderRadius: 999,
-    border: "1px solid rgba(11,147,136,0.16)",
-    background: "rgba(16,200,182,0.08)",
-    color: "#08756e",
-    fontWeight: 900,
-  },
+const pageStyle: CSSProperties = {
+  minHeight: "100vh",
+  background: `
+    radial-gradient(circle at top, ${rgba(palette.iceBlue, 0.08)} 0%, transparent 34%),
+    radial-gradient(circle at 20% 18%, ${rgba(palette.fjordBlue, 0.16)} 0%, transparent 28%),
+    linear-gradient(180deg, ${palette.deepNavy} 0%, ${rgba(palette.nordicBlue, 0.96)} 22%, ${rgba(palette.deepNavy, 0.98)} 58%, ${palette.deepNavy} 100%)
+  `,
+  color: palette.white,
+  position: "relative",
+  overflowX: "hidden",
+  fontFamily: 'Montserrat, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
 };
 
-const responsiveCss = `
-  @media (max-width: 1040px) {
-    .heroGrid,
-    .splitHeader,
-    .ecosystemGrid,
-    .footerGrid {
-      grid-template-columns: 1fr !important;
+const globalCss = `
+  :root {
+    color-scheme: dark;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    background: linear-gradient(180deg, ${palette.deepNavy} 0%, ${palette.nordicBlue} 100%);
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .shell {
+    width: min(1280px, calc(100% - 40px));
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+  }
+
+  .page-radial {
+    position: fixed;
+    border-radius: 999px;
+    pointer-events: none;
+    filter: blur(40px);
+    z-index: 0;
+  }
+
+  .page-radial-a {
+    width: 640px;
+    height: 640px;
+    top: -180px;
+    left: -160px;
+    background: radial-gradient(circle, ${rgba(palette.scandiBlue, 0.22)} 0%, ${rgba(palette.scandiBlue, 0)} 70%);
+  }
+
+  .page-radial-b {
+    width: 680px;
+    height: 680px;
+    right: -220px;
+    top: 22vh;
+    background: radial-gradient(circle, ${rgba(palette.iceBlue, 0.14)} 0%, ${rgba(palette.iceBlue, 0)} 72%);
+  }
+
+  .page-radial-c {
+    width: 640px;
+    height: 640px;
+    left: 15%;
+    bottom: -260px;
+    background: radial-gradient(circle, ${rgba(palette.sandBeige, 0.09)} 0%, ${rgba(palette.sandBeige, 0)} 72%);
+  }
+
+  .page-grid {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.22;
+    background-image:
+      linear-gradient(${rgba(palette.white, 0.03)} 1px, transparent 1px),
+      linear-gradient(90deg, ${rgba(palette.white, 0.03)} 1px, transparent 1px);
+    background-size: 120px 120px;
+    mask-image: linear-gradient(180deg, transparent, black 16%, black 84%, transparent);
+    z-index: 0;
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translate3d(0, 36px, 0);
+    transition:
+      opacity 0.8s ease,
+      transform 0.8s ease;
+    transition-delay: var(--delay, 0s);
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    position: relative;
+    isolation: isolate;
+    padding: 48px 0 32px;
+    border-bottom: 1px solid ${rgba(palette.white, 0.05)};
+  }
+
+  .hero-shell {
+    display: flex;
+    justify-content: center;
+  }
+
+  .hero-inner {
+    text-align: center;
+    width: min(980px, 100%);
+    position: relative;
+    z-index: 3;
+    padding: 56px 28px 48px;
+    border-radius: 34px;
+    background: linear-gradient(180deg, ${rgba(palette.deepNavy, 0.18)} 0%, ${rgba(palette.deepNavy, 0.32)} 100%);
+    border: 1px solid ${rgba(palette.white, 0.06)};
+    box-shadow: 0 30px 90px ${rgba(palette.deepNavy, 0.30)}, inset 0 1px 0 ${rgba(palette.white, 0.05)};
+    backdrop-filter: blur(10px);
+  }
+
+  .hero-backdrop {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    z-index: 1;
+  }
+
+  .hero-photo {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(180deg, ${rgba(palette.deepNavy, 0.28)} 0%, ${rgba(palette.deepNavy, 0.34)} 26%, ${rgba(palette.deepNavy, 0.76)} 68%, ${palette.deepNavy} 100%),
+      linear-gradient(120deg, ${rgba(palette.nordicBlue, 0.36)} 0%, ${rgba(palette.fjordBlue, 0.12)} 42%, ${rgba(palette.sandBeige, 0.08)} 100%),
+      url("/presetbase-lightroom-presets-j8_p8XtW6Pc-unsplash.jpg");
+    background-size: cover;
+    background-position: center center;
+    filter: saturate(0.82) contrast(0.94) brightness(0.86);
+    transform: scale(1.03);
+  }
+
+  .hero-photo::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 50% 54%, ${rgba(palette.iceBlue, 0.14)} 0%, ${rgba(palette.iceBlue, 0)} 34%),
+      linear-gradient(180deg, ${rgba(palette.white, 0.06)} 0%, transparent 24%);
+    mix-blend-mode: screen;
+    opacity: 0.55;
+  }
+
+  .hero-mist {
+    position: absolute;
+    border-radius: 999px;
+    filter: blur(54px);
+    pointer-events: none;
+  }
+
+  .hero-mist-a {
+    width: 54vw;
+    height: 26vw;
+    top: 14%;
+    left: -4%;
+    background: radial-gradient(circle, ${rgba(palette.iceBlue, 0.18)} 0%, ${rgba(palette.iceBlue, 0)} 70%);
+    opacity: 0.45;
+  }
+
+  .hero-mist-b {
+    width: 50vw;
+    height: 28vw;
+    right: -6%;
+    bottom: 20%;
+    background: radial-gradient(circle, ${rgba(palette.sandBeige, 0.10)} 0%, ${rgba(palette.sandBeige, 0)} 68%);
+    opacity: 0.24;
+  }
+
+  .hero-wave {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 140%;
+    border-radius: 50% 50% 0 0;
+    filter: blur(10px);
+    background: linear-gradient(90deg, ${rgba(palette.iceBlue, 0.03)} 0%, ${rgba(palette.iceBlue, 0.18)} 50%, ${rgba(palette.iceBlue, 0.03)} 100%);
+    border-top: 1px solid ${rgba(palette.iceBlue, 0.12)};
+  }
+
+  .hero-wave-a {
+    height: 220px;
+    bottom: 29%;
+    transform: translateX(-50%) rotate(-2deg);
+  }
+
+  .hero-wave-b {
+    height: 270px;
+    bottom: 21%;
+    transform: translateX(-50%) rotate(2deg);
+    opacity: 0.8;
+  }
+
+  .hero-wave-c {
+    height: 310px;
+    bottom: 12%;
+    transform: translateX(-50%) rotate(-4deg);
+    opacity: 0.65;
+  }
+
+  .hero-wave-d {
+    height: 330px;
+    bottom: 4%;
+    transform: translateX(-50%) rotate(3deg);
+    opacity: 0.5;
+  }
+
+  .hero-brand-row {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  .hero-logo {
+    display: block;
+    width: min(420px, 58vw);
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 10px 30px ${rgba(palette.deepNavy, 0.28)});
+  }
+
+  .hero-kicker {
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: ${rgba(palette.white, 0.58)};
+    margin-bottom: 18px;
+  }
+
+  .hero-title {
+    margin: 0 auto;
+    max-width: 1040px;
+    font-size: clamp(3.6rem, 9vw, 5rem);
+    line-height: 0.96;
+    letter-spacing: -0.06em;
+    font-weight: 600;
+    color: ${rgba(palette.white, 0.96)};
+    text-wrap: balance;
+  }
+
+  .hero-title span {
+    color: ${palette.iceBlue};
+  }
+
+  .hero-copy {
+    width: min(860px, 100%);
+    margin: 28px auto 0;
+    font-size: clamp(1.05rem, 2vw, 1.32rem);
+    line-height: 1.75;
+    color: ${rgba(palette.lightGray, 0.78)};
+    text-wrap: balance;
+  }
+
+  .hero-actions {
+    margin-top: 40px;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 18px;
+  }
+
+  .primary-cta,
+  .secondary-cta {
+    min-width: 268px;
+    min-height: 64px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 18px 28px;
+    border-radius: 18px;
+    font-size: 1rem;
+    font-weight: 700;
+    transition:
+      transform 0.25s ease,
+      border-color 0.25s ease,
+      background 0.25s ease,
+      box-shadow 0.25s ease;
+  }
+
+  .primary-cta {
+    background: ${palette.iceBlue};
+    color: ${palette.deepNavy};
+    border: 1px solid ${rgba(palette.iceBlue, 0.8)};
+    box-shadow: 0 18px 48px ${rgba(palette.iceBlue, 0.16)};
+  }
+
+  .secondary-cta {
+    background: ${rgba(palette.deepNavy, 0.25)};
+    color: ${rgba(palette.white, 0.92)};
+    border: 1px solid ${rgba(palette.iceBlue, 0.28)};
+    box-shadow: inset 0 0 0 1px ${rgba(palette.iceBlue, 0.05)};
+  }
+
+  .primary-cta:hover,
+  .secondary-cta:hover {
+    transform: translateY(-2px);
+  }
+
+  .section {
+    position: relative;
+    z-index: 1;
+  }
+
+  .section-dark {
+    padding: 110px 0 0;
+    background: linear-gradient(180deg, ${rgba(palette.deepNavy, 0)} 0%, ${rgba(palette.deepNavy, 0.18)} 28%, ${rgba(palette.deepNavy, 0.44)} 100%);
+  }
+
+  .compact-top {
+    padding-top: 70px;
+  }
+
+  .work-section {
+    padding-top: 90px;
+    padding-bottom: 18px;
+  }
+
+  .section-heading {
+    margin-bottom: 56px;
+  }
+
+  .section-heading.center {
+    text-align: center;
+    margin-inline: auto;
+    max-width: 980px;
+  }
+
+  .section-heading.narrow {
+    max-width: 900px;
+  }
+
+  .eyebrow {
+    font-size: 0.86rem;
+    font-weight: 800;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    margin-bottom: 22px;
+  }
+
+  .eyebrow-ice {
+    color: ${palette.iceBlue};
+  }
+
+  .eyebrow-gold {
+    color: ${palette.sandBeige};
+  }
+
+  .title {
+    margin: 0;
+    font-size: clamp(2.6rem, 5vw, 4rem);
+    line-height: 1.02;
+    letter-spacing: -0.05em;
+    color: ${rgba(palette.white, 0.96)};
+    font-weight: 500;
+    text-wrap: balance;
+  }
+
+  .title-center {
+    text-align: center;
+  }
+
+  .split-title {
+    max-width: 760px;
+  }
+
+  .ice-word {
+    color: ${palette.iceBlue};
+  }
+
+  .gold-word {
+    color: ${palette.sandBeige};
+  }
+
+  .section-copy {
+    margin: 22px 0 0;
+    color: ${rgba(palette.lightGray, 0.68)};
+    font-size: 1.15rem;
+    line-height: 1.78;
+  }
+
+  .center-copy {
+    width: min(860px, 100%);
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .service-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 28px;
+  }
+
+  .service-card,
+  .work-card,
+  .programme-panel,
+  .stack-row-card {
+    position: relative;
+    background:
+      linear-gradient(180deg, ${rgba(palette.iceBlue, 0.05)} 0%, ${rgba(palette.white, 0.025)} 100%),
+      ${rgba(palette.white, 0.012)};
+    border: 1px solid ${rgba(palette.iceBlue, 0.1)};
+    box-shadow:
+      inset 0 1px 0 ${rgba(palette.white, 0.04)},
+      0 22px 60px ${rgba(palette.deepNavy, 0.35)};
+    backdrop-filter: blur(16px);
+  }
+
+  .service-card {
+    min-height: 320px;
+    border-radius: 28px;
+    padding: 38px;
+  }
+
+  .service-icon {
+    width: 64px;
+    height: 64px;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 18px;
+    background: linear-gradient(180deg, ${rgba(palette.iceBlue, 0.15)} 0%, ${rgba(palette.iceBlue, 0.08)} 100%);
+    border: 1px solid ${rgba(palette.iceBlue, 0.12)};
+    color: ${palette.iceBlue};
+    font-size: 1.8rem;
+    margin-bottom: 32px;
+  }
+
+  .card-title {
+    margin: 0;
+    font-size: 1.5rem;
+    line-height: 1.2;
+    color: ${rgba(palette.white, 0.96)};
+    font-weight: 700;
+    text-wrap: balance;
+  }
+
+  .card-copy {
+    margin: 20px 0 0;
+    font-size: 1.03rem;
+    line-height: 1.8;
+    color: ${rgba(palette.lightGray, 0.65)};
+  }
+
+  .section-mesh {
+    padding: 110px 0 0;
+  }
+
+  .mesh-bg {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 100%;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 8% 72%, ${rgba(palette.iceBlue, 0.08)} 0 14px, transparent 15px),
+      radial-gradient(circle at 22% 20%, ${rgba(palette.iceBlue, 0.06)} 0 14px, transparent 15px),
+      radial-gradient(circle at 47% 8%, ${rgba(palette.iceBlue, 0.05)} 0 14px, transparent 15px),
+      radial-gradient(circle at 64% 21%, ${rgba(palette.iceBlue, 0.06)} 0 16px, transparent 17px),
+      radial-gradient(circle at 82% 12%, ${rgba(palette.iceBlue, 0.05)} 0 16px, transparent 17px),
+      radial-gradient(circle at 76% 62%, ${rgba(palette.iceBlue, 0.05)} 0 15px, transparent 16px),
+      linear-gradient(115deg, transparent 0 12%, ${rgba(palette.iceBlue, 0.07)} 12.4%, transparent 12.8%),
+      linear-gradient(58deg, transparent 0 39%, ${rgba(palette.iceBlue, 0.06)} 39.35%, transparent 39.7%),
+      linear-gradient(90deg, transparent 0 55%, ${rgba(palette.iceBlue, 0.05)} 55.3%, transparent 55.7%);
+    opacity: 0.5;
+    mask-image: linear-gradient(180deg, transparent, black 16%, black 86%, transparent);
+  }
+
+  .split-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(420px, 1.05fr);
+    gap: 64px;
+    align-items: start;
+  }
+
+  .split-copy {
+    padding-top: 10px;
+  }
+
+  .split-copy-text {
+    max-width: 700px;
+  }
+
+  .bullet-list {
+    margin-top: 38px;
+    display: grid;
+    gap: 22px;
+  }
+
+  .bullet-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    color: ${rgba(palette.white, 0.92)};
+    font-size: 1.06rem;
+    line-height: 1.6;
+  }
+
+  .bullet-dot,
+  .mini-bullet-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: ${palette.iceBlue};
+    flex: 0 0 auto;
+    margin-top: 0.55rem;
+    box-shadow: 0 0 0 8px ${rgba(palette.iceBlue, 0.08)};
+  }
+
+  .stack-list {
+    display: grid;
+    gap: 20px;
+  }
+
+  .stack-row-card {
+    border-radius: 26px;
+    padding: 30px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+
+  .stack-row-title {
+    font-size: 1.36rem;
+    line-height: 1.2;
+    font-weight: 700;
+    color: ${rgba(palette.white, 0.96)};
+    text-wrap: balance;
+  }
+
+  .stack-row-sub {
+    margin-top: 8px;
+    font-size: 1.02rem;
+    color: ${rgba(palette.lightGray, 0.62)};
+    line-height: 1.6;
+  }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-size: 0.86rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+
+  .status-pill.ice {
+    color: ${palette.iceBlue};
+    border: 1px solid ${rgba(palette.iceBlue, 0.2)};
+    background: ${rgba(palette.iceBlue, 0.08)};
+  }
+
+  .status-pill.gold {
+    color: ${palette.sandBeige};
+    border: 1px solid ${rgba(palette.sandBeige, 0.22)};
+    background: ${rgba(palette.sandBeige, 0.08)};
+  }
+
+  .status-pill.soft {
+    color: ${rgba(palette.white, 0.78)};
+    border: 1px solid ${rgba(palette.white, 0.12)};
+    background: ${rgba(palette.white, 0.05)};
+  }
+
+  .gateways-bleed {
+    display: grid;
+    grid-template-columns: minmax(0, 50vw) minmax(0, 1fr);
+    gap: 0;
+    align-items: stretch;
+  }
+
+  .gateway-visual-column {
+    position: relative;
+    align-self: stretch;
+    min-height: 100%;
+    height: 100%;
+  }
+
+  .gateway-visual-frame {
+    position: relative;
+    min-height: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 0 34px 34px 0;
+    background: ${rgba(palette.white, 0.03)};
+    border: 1px solid ${rgba(palette.iceBlue, 0.1)};
+    border-left: 0;
+    box-shadow:
+      inset 0 1px 0 ${rgba(palette.white, 0.05)},
+      0 26px 70px ${rgba(palette.deepNavy, 0.36)};
+  }
+
+  .gateway-visual-image {
+    --gateway-image-shift: 0px;
+    position: absolute;
+    inset: -190px 0;
+    background-image:
+      linear-gradient(180deg, ${rgba(palette.deepNavy, 0.04)} 0%, ${rgba(palette.deepNavy, 0.16)} 100%),
+      url("/antoine-boutserin-kY54CmFqgzw-unsplash.jpg");
+    background-size: cover;
+    background-position: center center;
+    transform: translate3d(0, var(--gateway-image-shift), 0) scale(1.04);
+    will-change: transform;
+  }
+
+  .gateway-visual-frame::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, ${rgba(palette.white, 0.05)} 0%, transparent 22%),
+      linear-gradient(180deg, ${rgba(palette.deepNavy, 0.02)} 0%, ${rgba(palette.deepNavy, 0.18)} 100%);
+    pointer-events: none;
+  }
+
+  .gateway-visual-glow {
+    position: absolute;
+    inset: auto -12% -12% -12%;
+    height: 32%;
+    background: radial-gradient(circle at 50% 0%, ${rgba(palette.iceBlue, 0.18)} 0%, ${rgba(palette.iceBlue, 0)} 72%);
+    pointer-events: none;
+    filter: blur(24px);
+    opacity: 0.55;
+  }
+
+  .gateway-content-wrap {
+    padding-left: clamp(32px, 4vw, 56px);
+    padding-right: max(20px, calc((100vw - 1280px) / 2 + 20px));
+  }
+
+  .gateway-content-column {
+    max-width: 860px;
+    display: grid;
+    gap: 28px;
+  }
+
+  .gateway-row {
+    align-items: flex-start;
+  }
+
+  .gateway-copy {
+    margin: 16px 0 0;
+    color: ${rgba(palette.lightGray, 0.62)};
+    line-height: 1.72;
+    font-size: 0.98rem;
+    max-width: 560px;
+  }
+
+  .gateway-side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 16px;
+    min-width: 170px;
+  }
+
+  .gateway-tags {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .gateway-tags span {
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    color: ${rgba(palette.white, 0.72)};
+    background: ${rgba(palette.white, 0.04)};
+    border: 1px solid ${rgba(palette.white, 0.08)};
+  }
+
+  .programme-panel-wrap {
+    margin-bottom: 30px;
+  }
+
+  .programme-panel {
+    border-radius: 30px;
+    padding: 34px;
+  }
+
+  .programme-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: ${rgba(palette.white, 0.96)};
+    margin-bottom: 24px;
+  }
+
+  .programme-table {
+    display: grid;
+    gap: 0;
+  }
+
+  .programme-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+    padding: 18px 0;
+    border-top: 1px solid ${rgba(palette.white, 0.08)};
+  }
+
+  .programme-row:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  .programme-type {
+    color: ${rgba(palette.white, 0.92)};
+    font-weight: 600;
+    line-height: 1.5;
+  }
+
+  .programme-values {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  .programme-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 38px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: ${palette.deepNavy};
+    background: ${palette.iceBlue};
+  }
+
+  .programme-chip.soft {
+    background: ${rgba(palette.white, 0.08)};
+    color: ${rgba(palette.white, 0.85)};
+    border: 1px solid ${rgba(palette.white, 0.1)};
+  }
+
+  .work-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 28px;
+  }
+
+  .work-card {
+    min-height: 100%;
+    border-radius: 28px;
+    padding: 34px;
+  }
+
+  .mini-bullets {
+    margin-top: 24px;
+    display: grid;
+    gap: 14px;
+  }
+
+  .mini-bullet {
+    display: flex;
+    gap: 14px;
+    color: ${rgba(palette.white, 0.88)};
+    line-height: 1.55;
+    font-size: 0.98rem;
+  }
+
+  .footer {
+    padding: 0px 0 18px;
+    position: relative;
+    background: linear-gradient(180deg, #03145a 0%, #072a8a 100%);
+
+  }
+
+  .footer-shell {
+    border-top: 1px solid ${rgba(palette.white, 0.06)};
+    padding-top: 54px;
+  }
+
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr 1fr;
+    gap: 56px;
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+
+  .footer-brand-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 18px;
+  }
+
+  .footer-logo {
+    display: block;
+    width: min(320px, 100%);
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 8px 24px ${rgba(palette.deepNavy, 0.22)});
+  }
+
+  .footer-copy {
+    margin: 0;
+    max-width: 420px;
+    color: ${rgba(palette.lightGray, 0.66)};
+    line-height: 1.8;
+    font-size: 1.02rem;
+  }
+
+  .footer-heading {
+    font-size: 0.9rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: ${rgba(palette.white, 0.95)};
+    margin-bottom: 24px;
+  }
+
+  .footer-links {
+    display: grid;
+    gap: 16px;
+    color: ${rgba(palette.lightGray, 0.72)};
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  .footer-links a:hover {
+    color: ${palette.iceBlue};
+  }
+
+  
+  @media (max-width: 1120px) {
+    .service-grid,
+    .work-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .split-shell,
+    .footer-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .gateways-bleed {
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+
+    .gateway-content-wrap {
+      padding-right: 20px;
+      padding-left: 20px;
+    }
+
+    .gateway-content-column {
+      max-width: 100%;
+    }
+
+    .gateway-visual-frame {
+      min-height: 560px;
+      height: min(70vh, 720px);
+      border-radius: 28px;
+      border-left: 1px solid ${rgba(palette.iceBlue, 0.1)};
+      margin: 0 20px;
+    }
+
+    .hero {
+      min-height: auto;
+      padding-top: 100px;
+      padding-bottom: 70px;
     }
   }
 
-  @media (max-width: 900px) {
-    .grid6 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-    .grid3 { grid-template-columns: 1fr !important; }
-    .heroStats { grid-template-columns: 1fr !important; }
-  }
+  @media (max-width: 760px) {
+    .shell {
+      width: min(100% - 24px, 1280px);
+    }
 
-  @media (max-width: 720px) {
-    .grid6 { grid-template-columns: 1fr !important; }
+    .gateway-content-wrap {
+      padding-right: 12px;
+      padding-left: 12px;
+    }
+
+    .gateway-visual-frame {
+      margin: 0 12px;
+    }
+
+    .hero-brand-row {
+      margin-bottom: 20px;
+    }
+
+    .hero-logo {
+      width: min(300px, 78vw);
+    }
+
+    .hero-inner {
+      padding: 36px 18px 32px;
+      border-radius: 24px;
+    }
+
+    .hero-title {
+      font-size: clamp(2.7rem, 13vw, 3.8rem);
+      line-height: 0.98;
+      letter-spacing: -0.045em;
+      max-width: 100%;
+      overflow-wrap: break-word;
+    }
+
+    .hero-copy,
+    .section-copy {
+      font-size: 1rem;
+      line-height: 1.72;
+    }
+
+    .hero-actions {
+      gap: 14px;
+    }
+
+    .primary-cta,
+    .secondary-cta {
+      min-width: 100%;
+      width: 100%;
+    }
+
+    .section-dark,
+    .section-mesh,
+    .footer {
+      padding-top: 20px;
+    }
+
+    .compact-top {
+      padding-top: 54px;
+    }
+
+    .service-grid,
+    .work-grid {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    .service-card,
+    .work-card,
+    .programme-panel,
+    .stack-row-card {
+      padding: 24px;
+      border-radius: 22px;
+    }
+
+    .stack-row-card,
+    .programme-row {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .gateway-side,
+    .programme-values {
+      align-items: flex-start;
+      justify-content: flex-start;
+    }
+
+    .gateway-tags {
+      justify-content: flex-start;
+    }
+
+    .gateway-visual-frame {
+      min-height: 440px;
+      border-radius: 22px;
+    }
+
+    .gateway-visual-image {
+      inset: -90px 0;
+    }
+
+    .footer-grid {
+      gap: 36px;
+      padding-bottom: 0;
+    }
+
+    .footer-logo {
+      width: min(240px, 100%);
+    }
   }
 `;
