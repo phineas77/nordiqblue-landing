@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
+import { siteConfig, siteUrl } from "../lib/site";
 
-export const alt = "NordiQ Blue — Professional infrastructure for the Blue Economy";
+export const alt = siteConfig.socialAlt;
 export const size = {
   width: 1200,
   height: 630,
@@ -8,6 +9,8 @@ export const size = {
 export const contentType = "image/png";
 
 export default function Image() {
+  const hostname = new URL(siteUrl).hostname.replace(/^www\./, "");
+
   return new ImageResponse(
     (
       <div
@@ -86,7 +89,7 @@ export default function Image() {
                 color: "#A1CAF1",
               }}
             >
-              nordiqblue.com
+              {hostname}
             </div>
           </div>
         </div>
