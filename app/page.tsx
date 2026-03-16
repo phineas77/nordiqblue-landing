@@ -126,95 +126,6 @@ export default function Home() {
     };
   }, []);
 
-  useEffect(() => {
-    const html = document.documentElement;
-    const body = document.body;
-    const wrappers = Array.from(
-      new Set(
-        [
-          body.firstElementChild,
-          document.getElementById("__next"),
-          ...Array.from(document.querySelectorAll<HTMLElement>("[data-nextjs-scroll-focus-boundary]")),
-        ].filter((node): node is HTMLElement => node instanceof HTMLElement)
-      )
-    );
-
-    const htmlPrev = {
-      overflowX: html.style.overflowX,
-      overflowY: html.style.overflowY,
-      height: html.style.height,
-      maxWidth: html.style.maxWidth,
-      width: html.style.width,
-    };
-
-    const bodyPrev = {
-      overflowX: body.style.overflowX,
-      overflowY: body.style.overflowY,
-      height: body.style.height,
-      minHeight: body.style.minHeight,
-      maxWidth: body.style.maxWidth,
-      width: body.style.width,
-    };
-
-    const wrapperPrev = wrappers.map((wrapper) => ({
-      wrapper,
-      overflow: wrapper.style.overflow,
-      overflowX: wrapper.style.overflowX,
-      overflowY: wrapper.style.overflowY,
-      height: wrapper.style.height,
-      minHeight: wrapper.style.minHeight,
-      maxWidth: wrapper.style.maxWidth,
-      width: wrapper.style.width,
-    }));
-
-    html.style.overflowX = "hidden";
-    html.style.overflowY = "auto";
-    html.style.height = "auto";
-    html.style.maxWidth = "100%";
-    html.style.width = "100%";
-
-    body.style.overflowX = "hidden";
-    body.style.overflowY = "auto";
-    body.style.height = "auto";
-    body.style.minHeight = "100vh";
-    body.style.maxWidth = "100%";
-    body.style.width = "100%";
-
-    wrappers.forEach((wrapper) => {
-      wrapper.style.overflow = "visible";
-      wrapper.style.overflowX = "visible";
-      wrapper.style.overflowY = "visible";
-      wrapper.style.height = "auto";
-      wrapper.style.minHeight = "0";
-      wrapper.style.maxWidth = "100%";
-      wrapper.style.width = "100%";
-    });
-
-    return () => {
-      html.style.overflowX = htmlPrev.overflowX;
-      html.style.overflowY = htmlPrev.overflowY;
-      html.style.height = htmlPrev.height;
-      html.style.maxWidth = htmlPrev.maxWidth;
-      html.style.width = htmlPrev.width;
-
-      body.style.overflowX = bodyPrev.overflowX;
-      body.style.overflowY = bodyPrev.overflowY;
-      body.style.height = bodyPrev.height;
-      body.style.minHeight = bodyPrev.minHeight;
-      body.style.maxWidth = bodyPrev.maxWidth;
-      body.style.width = bodyPrev.width;
-
-      wrapperPrev.forEach(({ wrapper, overflow, overflowX, overflowY, height, minHeight, maxWidth, width }) => {
-        wrapper.style.overflow = overflow;
-        wrapper.style.overflowX = overflowX;
-        wrapper.style.overflowY = overflowY;
-        wrapper.style.height = height;
-        wrapper.style.minHeight = minHeight;
-        wrapper.style.maxWidth = maxWidth;
-        wrapper.style.width = width;
-      });
-    };
-  }, []);
 
   return (
     <main className={`${montserrat.className} page-root`} style={pageStyle}>
@@ -661,7 +572,7 @@ const globalCss = `
     width: 100%;
     max-width: 100%;
     overflow-x: hidden;
-    overflow-y: auto;
+    overflow-y: visible;
     height: auto;
     background: linear-gradient(180deg, ${palette.deepNavy} 0%, ${palette.nordicBlue} 100%);
   }
@@ -681,7 +592,8 @@ const globalCss = `
   .page-root {
     min-height: 100vh;
     height: auto !important;
-    overflow: visible !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
   }
 
   a {
