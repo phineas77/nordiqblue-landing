@@ -246,7 +246,7 @@ export default function HomeClient() {
 
             <p className="hero-copy">
               We build the frameworks, platforms, and methodologies that enable scalable ocean
-              ventures—supporting Ocean Community’s multi-gateway European ecosystem through
+              ventures-supporting Ocean Community’s multi-gateway European ecosystem through
               transparent service and licensing agreements.
             </p>
 
@@ -813,7 +813,6 @@ const pageStyle: CSSProperties = {
   `,
   color: palette.white,
   position: "relative",
-  overflowX: "hidden",
   fontFamily:
     'Montserrat, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
 };
@@ -855,7 +854,7 @@ const globalCss = `
 
   .page-root {
     min-height: 100vh;
-    overflow-x: hidden;
+    overflow: visible;
   }
 
   a {
@@ -1274,7 +1273,7 @@ const globalCss = `
   .contact-copy {
     margin: 18px auto 0;
     max-width: 620px;
-    color: ${rgba(palette.lightGray, 0.76)};
+    color: ${rgba(palette.white, 0.96)};
     font-size: 1.02rem;
     line-height: 1.75;
   }
@@ -1300,7 +1299,7 @@ const globalCss = `
   }
 
   .contact-field span {
-    color: ${rgba(palette.lightGray, 0.78)};
+    color: ${rgba(palette.white, 0.96)};
     font-size: 0.98rem;
     font-weight: 600;
   }
