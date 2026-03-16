@@ -25,12 +25,13 @@ const palette = {
 
 const rgba = (hex: string, alpha: number) => {
   const clean = hex.replace("#", "");
-  const value = clean.length === 3
-    ? clean
-        .split("")
-        .map((char) => char + char)
-        .join("")
-    : clean;
+  const value =
+    clean.length === 3
+      ? clean
+          .split("")
+          .map((char) => char + char)
+          .join("")
+      : clean;
 
   const int = parseInt(value, 16);
   const r = (int >> 16) & 255;
@@ -86,6 +87,14 @@ function Reveal({ children, delay = 0, className }: RevealProps) {
 export default function HomeClient() {
   const gatewaysSectionRef = useRef<HTMLElement | null>(null);
   const gatewayImageRef = useRef<HTMLDivElement | null>(null);
+  const firstContactFieldRef = useRef<HTMLInputElement | null>(null);
+  const [isContactOpen, setIsContactOpen] = useState(false);
+  const [contactForm, setContactForm] = useState({
+    name: "",
+    company: "",
+    email: "",
+    message: "",
+  });
 
   useEffect(() => {
     const section = gatewaysSectionRef.current;
@@ -127,6 +136,74 @@ export default function HomeClient() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!isContactOpen) return;
+
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsContactOpen(false);
+      }
+    };
+
+    const frame = window.requestAnimationFrame(() => {
+      firstContactFieldRef.current?.focus();
+    });
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
+    };
+  }, [isContactOpen]);
+
+  const openContactForm = () => {
+    setIsContactOpen(true);
+  };
+
+  const closeContactForm = () => {
+    setIsContactOpen(false);
+  };
+
+  const handleContactChange = (
+    field: "name" | "company" | "email" | "message",
+    value: string
+  ) => {
+    setContactForm((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  };
+
+  const handleContactSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const subject = encodeURIComponent(
+      `NordiQ Blue enquiry from ${contactForm.name.trim() || "website visitor"}`
+    );
+
+    const body = encodeURIComponent(
+      [
+        `Name: ${contactForm.name.trim() || "-"}`,
+        `Company: ${contactForm.company.trim() || "-"}`,
+        `Email: ${contactForm.email.trim() || "-"}`,
+        "",
+        "Message:",
+        contactForm.message.trim() || "-",
+      ].join("\n")
+    );
+
+    window.location.href = `mailto:info@nordiqblue.com?subject=${subject}&body=${body}`;
+    setIsContactOpen(false);
+  };
 
   return (
     <main className={`${montserrat.className} page-root`} style={pageStyle}>
@@ -174,13 +251,17 @@ export default function HomeClient() {
             </p>
 
             <div className="hero-actions">
-              <a href="#what-we-build" className="primary-cta">
+              <a href="#what-we-build" className="secondary-cta">
                 Explore the ecosystem
                 <span aria-hidden>→</span>
               </a>
-              <a href="#contact" className="secondary-cta">
-                Partner with us
-              </a>
+              <button
+                type="button"
+                className="secondary-cta cta-button cta-strong"
+                onClick={openContactForm}
+              >
+                Let&apos;s innovate together
+              </button>
             </div>
           </Reveal>
         </div>
@@ -204,11 +285,11 @@ export default function HomeClient() {
               <div key={item.title}>
                 <Reveal delay={index * 0.06} className="service-card-wrap">
                   <article className="service-card">
-                  <div className="service-icon" aria-hidden>
-                    {item.icon}
-                  </div>
-                  <h3 className="card-title">{item.title}</h3>
-                  <p className="card-copy">{item.desc}</p>
+                    <div className="service-icon" aria-hidden>
+                      {item.icon}
+                    </div>
+                    <h3 className="card-title">{item.title}</h3>
+                    <p className="card-copy">{item.desc}</p>
                   </article>
                 </Reveal>
               </div>
@@ -254,11 +335,11 @@ export default function HomeClient() {
               <div key={item.title}>
                 <Reveal delay={0.1 + index * 0.06}>
                   <article className="stack-row-card">
-                  <div>
-                    <div className="stack-row-title">{item.title}</div>
-                    <div className="stack-row-sub">{item.sub}</div>
-                  </div>
-                  <span className={item.pillClass}>{item.pill}</span>
+                    <div>
+                      <div className="stack-row-title">{item.title}</div>
+                      <div className="stack-row-sub">{item.sub}</div>
+                    </div>
+                    <span className={item.pillClass}>{item.pill}</span>
                   </article>
                 </Reveal>
               </div>
@@ -284,8 +365,8 @@ export default function HomeClient() {
                   Multiple regional doors, <span className="ice-word">one unified system</span>
                 </h2>
                 <p className="section-copy split-copy-text">
-                  Gateways execute locally, adapt to regional strengths, and feed startups into a shared
-                  pipeline—without owning separate IP.
+                  Gateways execute locally, adapt to regional strengths, and feed startups into a
+                  shared pipeline—without owning separate IP.
                 </p>
               </Reveal>
 
@@ -294,26 +375,84 @@ export default function HomeClient() {
                   <div key={item.title}>
                     <Reveal delay={0.08 + index * 0.06}>
                       <article className="stack-row-card gateway-row">
-                      <div>
-                        <div className="stack-row-title">{item.title}</div>
-                        <div className="stack-row-sub">{item.location}</div>
-                        <p className="gateway-copy">{item.body}</p>
-                      </div>
-                      <div className="gateway-side">
-                        <span className={item.status === "Consortium" ? "status-pill gold" : "status-pill ice"}>
-                          {item.status.toUpperCase()}
-                        </span>
-                        <div className="gateway-tags">
-                          <span>{item.tag1}</span>
-                          <span>{item.tag2}</span>
+                        <div>
+                          <div className="stack-row-title">{item.title}</div>
+                          <div className="stack-row-sub">{item.location}</div>
+                          <p className="gateway-copy">{item.body}</p>
                         </div>
-                      </div>
+                        <div className="gateway-side">
+                          <span
+                            className={
+                              item.status === "Consortium"
+                                ? "status-pill gold"
+                                : "status-pill ice"
+                            }
+                          >
+                            {item.status.toUpperCase()}
+                          </span>
+                          <div className="gateway-tags">
+                            <span>{item.tag1}</span>
+                            <span>{item.tag2}</span>
+                          </div>
+                        </div>
                       </article>
                     </Reveal>
                   </div>
                 ))}
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="founders" className="section section-dark founders-section">
+        <div className="shell">
+          <Reveal className="section-heading center narrow" delay={0.02}>
+            <div className="eyebrow eyebrow-ice">Founding leadership</div>
+            <h2 className="title title-center">
+              Founded by pioneers in the <span className="ice-word">Sustainable Blue Economy</span>
+            </h2>
+            <p className="section-copy center-copy founder-intro">
+              NordiQ Blue is shaped by leaders who combine commercial execution, systems thinking,
+              and a deep commitment to ocean-positive innovation across Europe.
+            </p>
+          </Reveal>
+
+          <div className="founders-grid">
+            {founders.map((founder, index) => (
+              <div key={founder.name}>
+                <Reveal delay={0.08 + index * 0.08}>
+                  <article className="founder-card">
+                    <div className="founder-top">
+                      <div className="founder-photo-shell">
+                        <div
+                          className="founder-photo-ring"
+                          style={{ ["--founder-position" as string]: founder.imagePosition }}
+                        >
+                          <Image
+                            src={founder.image}
+                            alt={founder.imageAlt}
+                            className="founder-photo"
+                            fill
+                            sizes="(max-width: 760px) 180px, 220px"
+                          />
+                        </div>
+                      </div>
+                      <div className="founder-heading">
+                        <div className="founder-name">{founder.name}</div>
+                        <div className="founder-role">{founder.role}</div>
+                      </div>
+                    </div>
+
+                    <div className="founder-copy">
+                      {founder.paragraphs.map((paragraph) => (
+                        <p key={paragraph}>{paragraph}</p>
+                      ))}
+                    </div>
+                  </article>
+                </Reveal>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -354,19 +493,19 @@ export default function HomeClient() {
               <div key={item.title}>
                 <Reveal delay={0.12 + index * 0.06}>
                   <article className="work-card">
-                  <div className="service-icon" aria-hidden>
-                    {item.icon}
-                  </div>
-                  <h3 className="card-title">{item.title}</h3>
-                  <p className="card-copy">{item.desc}</p>
-                  <div className="mini-bullets">
-                    {item.bullets.map((bullet) => (
-                      <div key={bullet} className="mini-bullet">
-                        <span className="mini-bullet-dot" aria-hidden />
-                        <span>{bullet}</span>
-                      </div>
-                    ))}
-                  </div>
+                    <div className="service-icon" aria-hidden>
+                      {item.icon}
+                    </div>
+                    <h3 className="card-title">{item.title}</h3>
+                    <p className="card-copy">{item.desc}</p>
+                    <div className="mini-bullets">
+                      {item.bullets.map((bullet) => (
+                        <div key={bullet} className="mini-bullet">
+                          <span className="mini-bullet-dot" aria-hidden />
+                          <span>{bullet}</span>
+                        </div>
+                      ))}
+                    </div>
                   </article>
                 </Reveal>
               </div>
@@ -374,6 +513,96 @@ export default function HomeClient() {
           </div>
         </div>
       </section>
+
+      {isContactOpen && (
+        <div
+          className="contact-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="contact-title"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              closeContactForm();
+            }
+          }}
+        >
+          <div className="contact-shell">
+            <button type="button" className="contact-back cta-button" onClick={closeContactForm}>
+              <span aria-hidden>←</span>
+              Back
+            </button>
+
+            <div className="contact-panel">
+              <div className="contact-panel-header">
+                <div className="eyebrow eyebrow-ice">Contact us</div>
+                <h2 id="contact-title" className="contact-title">
+                  Let&apos;s innovate together
+                </h2>
+                <p className="contact-copy">
+                  Tell us about your programme, partnership, gateway, or ocean innovation idea and
+                  we&apos;ll continue the conversation with you directly.
+                </p>
+              </div>
+
+              <form className="contact-form" onSubmit={handleContactSubmit}>
+                <div className="contact-field-grid">
+                  <label className="contact-field">
+                    <span>Name*</span>
+                    <input
+                      ref={firstContactFieldRef}
+                      type="text"
+                      value={contactForm.name}
+                      onChange={(event) => handleContactChange("name", event.target.value)}
+                      autoComplete="name"
+                      required
+                    />
+                  </label>
+
+                  <label className="contact-field">
+                    <span>Company</span>
+                    <input
+                      type="text"
+                      value={contactForm.company}
+                      onChange={(event) => handleContactChange("company", event.target.value)}
+                      autoComplete="organization"
+                    />
+                  </label>
+
+                  <label className="contact-field">
+                    <span>Email*</span>
+                    <input
+                      type="email"
+                      value={contactForm.email}
+                      onChange={(event) => handleContactChange("email", event.target.value)}
+                      autoComplete="email"
+                      required
+                    />
+                  </label>
+
+                  <label className="contact-field contact-field-full">
+                    <span>Message*</span>
+                    <textarea
+                      value={contactForm.message}
+                      onChange={(event) => handleContactChange("message", event.target.value)}
+                      rows={6}
+                      required
+                    />
+                  </label>
+                </div>
+
+                <div className="contact-actions-bar">
+                  <button type="submit" className="contact-submit cta-button">
+                    Send message
+                  </button>
+                  <p className="contact-note">
+                    This opens your email app with the message pre-filled to info@nordiqblue.com.
+                  </p>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
 
       <footer id="contact" className="footer">
         <div className="shell footer-shell">
@@ -507,6 +736,33 @@ const gateways = [
   },
 ];
 
+const founders = [
+  {
+    name: "Cecilia Hjertzell",
+    role: "Chair of the Board, Nordics",
+    image: "/founders/cecilia-hjertzell.jpg",
+    imageAlt: "Portrait of Cecilia Hjertzell",
+    imagePosition: "center 26%",
+    paragraphs: [
+      "Cecilia Hjertzell brings broad experience from serial entrepreneurship, board roles, and leadership positions in global companies across IT, retail, data centers, and telecom, with sustainability as a consistent thread.",
+      "With a strategic and execution-driven approach, she helps organizations translate sustainability into resilient, value-creating business. She is also a mentor within Women on Board, a business advisor in the Aspire Balkans Women Entrepreneurship Accelerator Program, and a coach to innovative startups.",
+      "As Chairwoman of Ocean Community Nordic, Cecilia is committed to connecting people, ideas, and partners to accelerate ocean-positive innovation across the region. Raised in a Swedish archipelago town, she has a deep personal connection to the sea that continues to shape her commitment to the ocean.",
+    ],
+  },
+  {
+    name: "Susanne Wedin-Schildt",
+    role: "Founder & President of Ocean Community · Treasurer, Nordics",
+    image: "/founders/susanne-wedin-schildt.jpg",
+    imageAlt: "Portrait of Susanne Wedin-Schildt",
+    imagePosition: "center 22%",
+    paragraphs: [
+      "As Founder and President of Ocean Community, Susanne Wedin-Schildt brings extensive experience leading teams and operations across diverse markets and industries. Her career spans large enterprises and top global management consulting firms, where she has served as a trusted advisor to CxOs on complex strategic and transformation initiatives.",
+      "She is deeply focused on harnessing IT and innovation to enable sustainable, scalable, and regenerative business models. Susanne also serves on multiple business, advisory, and jury boards within the green and blue sectors.",
+      "In 2020, Susanne relocated from Sweden to Portugal to pursue her long-standing commitment to ocean protection and sustainable use. A sailor by passion, and a strong advocate for a more sustainable future, she brings both strategic depth and lived dedication to the blue economy.",
+    ],
+  },
+];
+
 const programmeRows = [
   { type: "Community building", owner: "Ocean Community", ip: "OC" },
   { type: "Ocean literacy (open)", owner: "Ocean Community", ip: "OC" },
@@ -537,7 +793,11 @@ const workCards = [
     icon: "▭",
     title: "Licensing & curriculum",
     desc: "Protected methodologies and learning modules licensed via Ocean Community where relevant.",
-    bullets: ["Playbooks & frameworks", "Certification programmes (paid)", "IP protection & value creation"],
+    bullets: [
+      "Playbooks & frameworks",
+      "Certification programmes (paid)",
+      "IP protection & value creation",
+    ],
   },
 ];
 
@@ -546,12 +806,16 @@ const pageStyle: CSSProperties = {
   background: `
     radial-gradient(circle at top, ${rgba(palette.iceBlue, 0.08)} 0%, transparent 34%),
     radial-gradient(circle at 20% 18%, ${rgba(palette.fjordBlue, 0.16)} 0%, transparent 28%),
-    linear-gradient(180deg, ${palette.deepNavy} 0%, ${rgba(palette.nordicBlue, 0.96)} 22%, ${rgba(palette.deepNavy, 0.98)} 58%, ${palette.deepNavy} 100%)
+    linear-gradient(180deg, ${palette.deepNavy} 0%, ${rgba(palette.nordicBlue, 0.96)} 22%, ${rgba(
+      palette.deepNavy,
+      0.98
+    )} 58%, ${palette.deepNavy} 100%)
   `,
   color: palette.white,
   position: "relative",
   overflowX: "hidden",
-  fontFamily: 'Montserrat, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  fontFamily:
+    'Montserrat, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
 };
 
 const globalCss = `
@@ -568,8 +832,7 @@ const globalCss = `
     width: 100%;
     max-width: 100%;
     overflow-x: hidden;
-    overflow-y: auto;
-    height: auto;
+    font-family: Montserrat, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
 
   body {
@@ -578,28 +841,21 @@ const globalCss = `
     width: 100%;
     max-width: 100%;
     overflow-x: hidden;
-    overflow-y: visible;
-    height: auto;
     background: linear-gradient(180deg, ${palette.deepNavy} 0%, ${palette.nordicBlue} 100%);
+    font-family: Montserrat, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
 
-  body > div:first-child,
-  #__next,
-  [data-nextjs-scroll-focus-boundary] {
-    height: auto !important;
-    min-height: 0 !important;
-    max-width: 100%;
-    width: 100%;
-    overflow: visible !important;
-    overflow-x: visible !important;
-    overflow-y: visible !important;
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+    font-family: inherit;
   }
 
   .page-root {
     min-height: 100vh;
-    height: auto !important;
-    overflow-x: hidden !important;
-    overflow-y: visible !important;
+    overflow-x: hidden;
   }
 
   a {
@@ -627,7 +883,10 @@ const globalCss = `
     height: 640px;
     top: -180px;
     left: -160px;
-    background: radial-gradient(circle, ${rgba(palette.scandiBlue, 0.22)} 0%, ${rgba(palette.scandiBlue, 0)} 70%);
+    background: radial-gradient(circle, ${rgba(palette.scandiBlue, 0.22)} 0%, ${rgba(
+  palette.scandiBlue,
+  0
+)} 70%);
   }
 
   .page-radial-b {
@@ -635,7 +894,10 @@ const globalCss = `
     height: 680px;
     right: -220px;
     top: 22vh;
-    background: radial-gradient(circle, ${rgba(palette.iceBlue, 0.14)} 0%, ${rgba(palette.iceBlue, 0)} 72%);
+    background: radial-gradient(circle, ${rgba(palette.iceBlue, 0.14)} 0%, ${rgba(
+  palette.iceBlue,
+  0
+)} 72%);
   }
 
   .page-radial-c {
@@ -643,7 +905,10 @@ const globalCss = `
     height: 640px;
     left: 15%;
     bottom: -260px;
-    background: radial-gradient(circle, ${rgba(palette.sandBeige, 0.09)} 0%, ${rgba(palette.sandBeige, 0)} 72%);
+    background: radial-gradient(circle, ${rgba(palette.sandBeige, 0.09)} 0%, ${rgba(
+  palette.sandBeige,
+  0
+)} 72%);
   }
 
   .page-grid {
@@ -706,9 +971,15 @@ const globalCss = `
     z-index: 3;
     padding: 56px 28px 48px;
     border-radius: 34px;
-    background: linear-gradient(180deg, ${rgba(palette.deepNavy, 0.18)} 0%, ${rgba(palette.deepNavy, 0.32)} 100%);
+    background: linear-gradient(180deg, ${rgba(palette.deepNavy, 0.18)} 0%, ${rgba(
+  palette.deepNavy,
+  0.32
+)} 100%);
     border: 1px solid ${rgba(palette.white, 0.06)};
-    box-shadow: 0 30px 90px ${rgba(palette.deepNavy, 0.30)}, inset 0 1px 0 ${rgba(palette.white, 0.05)};
+    box-shadow: 0 30px 90px ${rgba(palette.deepNavy, 0.30)}, inset 0 1px 0 ${rgba(
+  palette.white,
+  0.05
+)};
     backdrop-filter: blur(10px);
   }
 
@@ -723,8 +994,14 @@ const globalCss = `
     position: absolute;
     inset: 0;
     background-image:
-      linear-gradient(180deg, ${rgba(palette.deepNavy, 0.28)} 0%, ${rgba(palette.deepNavy, 0.34)} 26%, ${rgba(palette.deepNavy, 0.76)} 68%, ${palette.deepNavy} 100%),
-      linear-gradient(120deg, ${rgba(palette.nordicBlue, 0.36)} 0%, ${rgba(palette.fjordBlue, 0.12)} 42%, ${rgba(palette.sandBeige, 0.08)} 100%),
+      linear-gradient(180deg, ${rgba(palette.deepNavy, 0.28)} 0%, ${rgba(
+  palette.deepNavy,
+  0.34
+)} 26%, ${rgba(palette.deepNavy, 0.76)} 68%, ${palette.deepNavy} 100%),
+      linear-gradient(120deg, ${rgba(palette.nordicBlue, 0.36)} 0%, ${rgba(
+  palette.fjordBlue,
+  0.12
+)} 42%, ${rgba(palette.sandBeige, 0.08)} 100%),
       url("/presetbase-lightroom-presets-j8_p8XtW6Pc-unsplash.jpg");
     background-size: cover;
     background-position: center center;
@@ -737,7 +1014,10 @@ const globalCss = `
     position: absolute;
     inset: 0;
     background:
-      radial-gradient(circle at 50% 54%, ${rgba(palette.iceBlue, 0.14)} 0%, ${rgba(palette.iceBlue, 0)} 34%),
+      radial-gradient(circle at 50% 54%, ${rgba(palette.iceBlue, 0.14)} 0%, ${rgba(
+  palette.iceBlue,
+  0
+)} 34%),
       linear-gradient(180deg, ${rgba(palette.white, 0.06)} 0%, transparent 24%);
     mix-blend-mode: screen;
     opacity: 0.55;
@@ -755,7 +1035,10 @@ const globalCss = `
     height: 26vw;
     top: 14%;
     left: -4%;
-    background: radial-gradient(circle, ${rgba(palette.iceBlue, 0.18)} 0%, ${rgba(palette.iceBlue, 0)} 70%);
+    background: radial-gradient(circle, ${rgba(palette.iceBlue, 0.18)} 0%, ${rgba(
+  palette.iceBlue,
+  0
+)} 70%);
     opacity: 0.45;
   }
 
@@ -764,7 +1047,10 @@ const globalCss = `
     height: 28vw;
     right: -6%;
     bottom: 20%;
-    background: radial-gradient(circle, ${rgba(palette.sandBeige, 0.10)} 0%, ${rgba(palette.sandBeige, 0)} 68%);
+    background: radial-gradient(circle, ${rgba(palette.sandBeige, 0.10)} 0%, ${rgba(
+  palette.sandBeige,
+  0
+)} 68%);
     opacity: 0.24;
   }
 
@@ -775,7 +1061,12 @@ const globalCss = `
     width: 140%;
     border-radius: 50% 50% 0 0;
     filter: blur(10px);
-    background: linear-gradient(90deg, ${rgba(palette.iceBlue, 0.03)} 0%, ${rgba(palette.iceBlue, 0.18)} 50%, ${rgba(palette.iceBlue, 0.03)} 100%);
+    background: linear-gradient(
+      90deg,
+      ${rgba(palette.iceBlue, 0.03)} 0%,
+      ${rgba(palette.iceBlue, 0.18)} 50%,
+      ${rgba(palette.iceBlue, 0.03)} 100%
+    );
     border-top: 1px solid ${rgba(palette.iceBlue, 0.12)};
   }
 
@@ -899,6 +1190,188 @@ const globalCss = `
     transform: translateY(-2px);
   }
 
+  .cta-button {
+    appearance: none;
+    cursor: pointer;
+    font: inherit;
+    text-align: center;
+  }
+
+  .cta-strong {
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+
+  .contact-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    overflow-y: auto;
+    background:
+      linear-gradient(180deg, ${rgba(palette.deepNavy, 0.78)} 0%, ${rgba(
+  palette.deepNavy,
+  0.9
+)} 100%),
+      radial-gradient(circle at top, ${rgba(palette.iceBlue, 0.16)} 0%, ${rgba(
+  palette.iceBlue,
+  0
+)} 42%);
+    backdrop-filter: blur(20px);
+  }
+
+  .contact-shell {
+    width: min(880px, 100%);
+    display: grid;
+    gap: 22px;
+  }
+
+  .contact-back {
+    justify-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: ${rgba(palette.white, 0.88)};
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .contact-panel {
+    border-radius: 34px;
+    padding: 38px;
+    background:
+      linear-gradient(180deg, ${rgba(palette.iceBlue, 0.08)} 0%, ${rgba(
+  palette.white,
+  0.03
+)} 100%),
+      ${rgba(palette.deepNavy, 0.62)};
+    border: 1px solid ${rgba(palette.iceBlue, 0.14)};
+    box-shadow:
+      inset 0 1px 0 ${rgba(palette.white, 0.05)},
+      0 34px 90px ${rgba(palette.deepNavy, 0.45)};
+  }
+
+  .contact-panel-header {
+    text-align: center;
+    max-width: 680px;
+    margin: 0 auto 28px;
+  }
+
+  .contact-title {
+    margin: 0;
+    font-size: clamp(2.4rem, 5vw, 3.5rem);
+    line-height: 1.02;
+    letter-spacing: -0.05em;
+    color: ${rgba(palette.white, 0.97)};
+    font-weight: 500;
+  }
+
+  .contact-copy {
+    margin: 18px auto 0;
+    max-width: 620px;
+    color: ${rgba(palette.lightGray, 0.76)};
+    font-size: 1.02rem;
+    line-height: 1.75;
+  }
+
+  .contact-form {
+    display: grid;
+    gap: 24px;
+  }
+
+  .contact-field-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .contact-field {
+    display: grid;
+    gap: 10px;
+  }
+
+  .contact-field-full {
+    grid-column: 1 / -1;
+  }
+
+  .contact-field span {
+    color: ${rgba(palette.lightGray, 0.78)};
+    font-size: 0.98rem;
+    font-weight: 600;
+  }
+
+  .contact-field input,
+  .contact-field textarea {
+    width: 100%;
+    border: 1px solid ${rgba(palette.iceBlue, 0.16)};
+    border-radius: 18px;
+    padding: 16px 18px;
+    background: ${rgba(palette.white, 0.06)};
+    color: ${rgba(palette.white, 0.96)};
+    outline: none;
+    font: inherit;
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease,
+      background 0.2s ease;
+  }
+
+  .contact-field textarea {
+    min-height: 180px;
+    resize: vertical;
+  }
+
+  .contact-field input::placeholder,
+  .contact-field textarea::placeholder {
+    color: ${rgba(palette.lightGray, 0.42)};
+  }
+
+  .contact-field input:focus,
+  .contact-field textarea:focus {
+    border-color: ${rgba(palette.iceBlue, 0.46)};
+    box-shadow: 0 0 0 4px ${rgba(palette.iceBlue, 0.12)};
+    background: ${rgba(palette.white, 0.08)};
+  }
+
+  .contact-actions-bar {
+    display: grid;
+    gap: 12px;
+  }
+
+  .contact-submit {
+    width: 100%;
+    min-height: 60px;
+    border: 1px solid ${rgba(palette.iceBlue, 0.82)};
+    border-radius: 18px;
+    background: ${palette.iceBlue};
+    color: ${palette.deepNavy};
+    font-size: 1rem;
+    font-weight: 800;
+    box-shadow: 0 18px 48px ${rgba(palette.iceBlue, 0.18)};
+    transition:
+      transform 0.25s ease,
+      box-shadow 0.25s ease,
+      filter 0.25s ease;
+  }
+
+  .contact-submit:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.02);
+  }
+
+  .contact-note {
+    margin: 0;
+    color: ${rgba(palette.lightGray, 0.62)};
+    font-size: 0.92rem;
+    line-height: 1.6;
+    text-align: center;
+  }
+
   .section {
     position: relative;
     z-index: 1;
@@ -906,7 +1379,12 @@ const globalCss = `
 
   .section-dark {
     padding: 110px 0 0;
-    background: linear-gradient(180deg, ${rgba(palette.deepNavy, 0)} 0%, ${rgba(palette.deepNavy, 0.18)} 28%, ${rgba(palette.deepNavy, 0.44)} 100%);
+    background: linear-gradient(
+      180deg,
+      ${rgba(palette.deepNavy, 0)} 0%,
+      ${rgba(palette.deepNavy, 0.18)} 28%,
+      ${rgba(palette.deepNavy, 0.44)} 100%
+    );
   }
 
   .compact-top {
@@ -999,7 +1477,10 @@ const globalCss = `
   .stack-row-card {
     position: relative;
     background:
-      linear-gradient(180deg, ${rgba(palette.iceBlue, 0.05)} 0%, ${rgba(palette.white, 0.025)} 100%),
+      linear-gradient(180deg, ${rgba(palette.iceBlue, 0.05)} 0%, ${rgba(
+  palette.white,
+  0.025
+)} 100%),
       ${rgba(palette.white, 0.012)};
     border: 1px solid ${rgba(palette.iceBlue, 0.1)};
     box-shadow:
@@ -1020,7 +1501,10 @@ const globalCss = `
     display: inline-grid;
     place-items: center;
     border-radius: 18px;
-    background: linear-gradient(180deg, ${rgba(palette.iceBlue, 0.15)} 0%, ${rgba(palette.iceBlue, 0.08)} 100%);
+    background: linear-gradient(180deg, ${rgba(palette.iceBlue, 0.15)} 0%, ${rgba(
+  palette.iceBlue,
+  0.08
+)} 100%);
     border: 1px solid ${rgba(palette.iceBlue, 0.12)};
     color: ${palette.iceBlue};
     font-size: 1.8rem;
@@ -1200,7 +1684,10 @@ const globalCss = `
     position: absolute;
     inset: -190px 0;
     background-image:
-      linear-gradient(180deg, ${rgba(palette.deepNavy, 0.04)} 0%, ${rgba(palette.deepNavy, 0.16)} 100%),
+      linear-gradient(180deg, ${rgba(palette.deepNavy, 0.04)} 0%, ${rgba(
+  palette.deepNavy,
+  0.16
+)} 100%),
       url("/antoine-boutserin-kY54CmFqgzw-unsplash.jpg");
     background-size: cover;
     background-position: center center;
@@ -1214,7 +1701,10 @@ const globalCss = `
     inset: 0;
     background:
       linear-gradient(180deg, ${rgba(palette.white, 0.05)} 0%, transparent 22%),
-      linear-gradient(180deg, ${rgba(palette.deepNavy, 0.02)} 0%, ${rgba(palette.deepNavy, 0.18)} 100%);
+      linear-gradient(180deg, ${rgba(palette.deepNavy, 0.02)} 0%, ${rgba(
+  palette.deepNavy,
+  0.18
+)} 100%);
     pointer-events: none;
   }
 
@@ -1222,7 +1712,10 @@ const globalCss = `
     position: absolute;
     inset: auto -12% -12% -12%;
     height: 32%;
-    background: radial-gradient(circle at 50% 0%, ${rgba(palette.iceBlue, 0.18)} 0%, ${rgba(palette.iceBlue, 0)} 72%);
+    background: radial-gradient(circle at 50% 0%, ${rgba(
+  palette.iceBlue,
+  0.18
+)} 0%, ${rgba(palette.iceBlue, 0)} 72%);
     pointer-events: none;
     filter: blur(24px);
     opacity: 0.55;
@@ -1341,6 +1834,136 @@ const globalCss = `
     border: 1px solid ${rgba(palette.white, 0.1)};
   }
 
+  .founders-section {
+    padding-top: 96px;
+  }
+
+  .founder-intro {
+    max-width: 820px;
+  }
+
+  .founders-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px;
+  }
+
+  .founder-card {
+    min-height: 100%;
+    border-radius: 30px;
+    padding: 34px;
+    position: relative;
+    background:
+      linear-gradient(180deg, ${rgba(palette.iceBlue, 0.06)} 0%, ${rgba(
+  palette.white,
+  0.02
+)} 100%),
+      ${rgba(palette.white, 0.012)};
+    border: 1px solid ${rgba(palette.iceBlue, 0.1)};
+    box-shadow:
+      inset 0 1px 0 ${rgba(palette.white, 0.04)},
+      0 22px 60px ${rgba(palette.deepNavy, 0.35)};
+    backdrop-filter: blur(16px);
+    overflow: hidden;
+  }
+
+  .founder-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      ${rgba(palette.iceBlue, 0.34)} 24%,
+      ${rgba(palette.sandBeige, 0.24)} 76%,
+      transparent 100%
+    );
+  }
+
+  .founder-top {
+    display: grid;
+    grid-template-columns: minmax(0, 220px) minmax(0, 1fr);
+    align-items: center;
+    gap: 28px;
+    margin-bottom: 28px;
+  }
+
+  .founder-photo-shell {
+    display: flex;
+    justify-content: flex-start;
+  }
+
+  .founder-photo-ring {
+    position: relative;
+    width: min(220px, 100%);
+    aspect-ratio: 1 / 1;
+    border-radius: 28px;
+    overflow: hidden;
+    border: 1px solid ${rgba(palette.iceBlue, 0.22)};
+    box-shadow:
+      inset 0 1px 0 ${rgba(palette.white, 0.08)},
+      0 20px 54px ${rgba(palette.deepNavy, 0.34)};
+    background:
+      linear-gradient(180deg, ${rgba(palette.iceBlue, 0.18)} 0%, ${rgba(
+  palette.white,
+  0.06
+)} 100%),
+      ${rgba(palette.deepNavy, 0.36)};
+  }
+
+  .founder-photo-ring::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, ${rgba(palette.deepNavy, 0.04)} 0%, ${rgba(
+  palette.deepNavy,
+  0.16
+)} 100%),
+      radial-gradient(circle at 50% 10%, ${rgba(palette.white, 0.1)} 0%, transparent 45%);
+    pointer-events: none;
+  }
+
+  .founder-photo {
+    object-fit: cover;
+    object-position: var(--founder-position, center center);
+    filter: grayscale(1) contrast(1.04) brightness(0.98);
+  }
+
+  .founder-heading {
+    align-self: center;
+  }
+
+  .founder-name {
+    font-size: 1.5rem;
+    line-height: 1.16;
+    font-weight: 700;
+    color: ${rgba(palette.white, 0.96)};
+    letter-spacing: -0.03em;
+  }
+
+  .founder-role {
+    margin-top: 8px;
+    font-size: 0.94rem;
+    line-height: 1.5;
+    color: ${rgba(palette.sandBeige, 0.9)};
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .founder-copy {
+    display: grid;
+    gap: 16px;
+  }
+
+  .founder-copy p {
+    margin: 0;
+    color: ${rgba(palette.lightGray, 0.72)};
+    font-size: 1rem;
+    line-height: 1.82;
+  }
+
   .work-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1368,10 +1991,9 @@ const globalCss = `
   }
 
   .footer {
-    padding: 0px 0 18px;
+    padding: 0 0 18px;
     position: relative;
     background: linear-gradient(180deg, #03145a 0%, #072a8a 100%);
-
   }
 
   .footer-shell {
@@ -1430,10 +2052,18 @@ const globalCss = `
     color: ${palette.iceBlue};
   }
 
-  
   @media (max-width: 1120px) {
+    .contact-panel {
+      padding: 30px;
+    }
+
+    .contact-field-grid {
+      grid-template-columns: 1fr;
+    }
+
     .service-grid,
-    .work-grid {
+    .work-grid,
+    .founders-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
@@ -1472,6 +2102,40 @@ const globalCss = `
   }
 
   @media (max-width: 760px) {
+    .contact-overlay {
+      padding: 16px 12px;
+      align-items: start;
+    }
+
+    .contact-shell {
+      width: 100%;
+      gap: 14px;
+    }
+
+    .contact-panel {
+      padding: 24px 18px 20px;
+      border-radius: 24px;
+    }
+
+    .contact-title {
+      font-size: clamp(2rem, 10vw, 2.7rem);
+    }
+
+    .contact-back {
+      font-size: 0.95rem;
+    }
+
+    .contact-field input,
+    .contact-field textarea {
+      border-radius: 16px;
+      padding: 14px 16px;
+    }
+
+    .contact-submit {
+      min-height: 56px;
+      border-radius: 16px;
+    }
+
     .shell {
       width: min(100% - 24px, 1280px);
     }
@@ -1533,7 +2197,8 @@ const globalCss = `
     }
 
     .service-grid,
-    .work-grid {
+    .work-grid,
+    .founders-grid {
       grid-template-columns: 1fr;
       gap: 20px;
     }
