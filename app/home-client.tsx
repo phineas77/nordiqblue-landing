@@ -226,6 +226,14 @@ export default function HomeClient() {
         </div>
 
         <div className="shell hero-shell">
+          <nav className="hero-top-nav" aria-label="Section navigation">
+            {sectionJumpLinks.map((item) => (
+              <a key={item.href} href={item.href} className="hero-top-nav-pill">
+                {item.label}
+              </a>
+            ))}
+          </nav>
+
           <Reveal className="hero-inner">
             <div className="hero-brand-row">
               <Image
@@ -238,7 +246,7 @@ export default function HomeClient() {
               />
             </div>
 
-            <div className="hero-kicker">Commercial IP & Innovation Engine</div>
+            <div className="hero-kicker">The Nordic engine for global ocean innovation</div>
 
             <h1 className="hero-title">
               Professional infrastructure for the <span>Blue Economy</span>
@@ -649,6 +657,14 @@ export default function HomeClient() {
   );
 }
 
+const sectionJumpLinks = [
+  { href: "#what-we-build", label: "What we build" },
+  { href: "#ecosystem", label: "Ecosystem model" },
+  { href: "#gateways", label: "Gateways" },
+  { href: "#founders", label: "Founders" },
+  { href: "#how-we-work", label: "How we work" },
+];
+
 const capabilities = [
   {
     icon: "↗",
@@ -960,7 +976,54 @@ const globalCss = `
 
   .hero-shell {
     display: flex;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
+  }
+
+  .hero-top-nav {
+    width: min(980px, 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 18px;
+    position: relative;
+    z-index: 3;
+  }
+
+  .hero-top-nav-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 52px;
+    padding: 14px 22px;
+    border-radius: 999px;
+    border: 1px solid ${rgba(palette.white, 0.08)};
+    background: linear-gradient(180deg, ${rgba(palette.white, 0.08)} 0%, ${rgba(palette.white, 0.04)} 100%);
+    box-shadow:
+      inset 0 1px 0 ${rgba(palette.white, 0.06)},
+      0 18px 42px ${rgba(palette.deepNavy, 0.16)};
+    color: ${rgba(palette.white, 0.92)};
+    font-size: 0.98rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    transition:
+      transform 0.25s ease,
+      border-color 0.25s ease,
+      background 0.25s ease,
+      color 0.25s ease;
+    backdrop-filter: blur(12px);
+  }
+
+  .hero-top-nav-pill:hover {
+    transform: translateY(-2px);
+    border-color: ${rgba(palette.iceBlue, 0.22)};
+    background: linear-gradient(180deg, ${rgba(palette.white, 0.1)} 0%, ${rgba(palette.white, 0.05)} 100%);
+    color: ${palette.white};
   }
 
   .hero-inner {
@@ -1374,6 +1437,12 @@ const globalCss = `
   .section {
     position: relative;
     z-index: 1;
+  }
+
+  .hero + .section,
+  .section + .section,
+  .section + .footer {
+    margin-top: 15px;
   }
 
   .section-dark {
@@ -2052,6 +2121,17 @@ const globalCss = `
   }
 
   @media (max-width: 1120px) {
+    .hero-top-nav {
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .hero-top-nav-pill {
+      min-height: 50px;
+      padding: 13px 20px;
+      font-size: 0.96rem;
+    }
+
     .contact-panel {
       padding: 30px;
     }
@@ -2146,6 +2226,28 @@ const globalCss = `
 
     .gateway-visual-frame {
       margin: 0 12px;
+    }
+
+    .hero-top-nav {
+      width: 100%;
+      justify-content: flex-start;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+
+    .hero-top-nav::-webkit-scrollbar {
+      display: none;
+    }
+
+    .hero-top-nav-pill {
+      min-height: 48px;
+      padding: 12px 18px;
+      font-size: 0.95rem;
+      flex: 0 0 auto;
     }
 
     .hero-brand-row {
