@@ -428,8 +428,8 @@ export default function HomeClient() {
 
           <div className="founders-grid">
             {founders.map((founder, index) => (
-              <div key={founder.name}>
-                <Reveal delay={0.08 + index * 0.08}>
+              <div key={founder.name} className="founder-grid-item">
+                <Reveal className="founder-reveal" delay={0.08 + index * 0.08}>
                   <article className="founder-card">
                     <div className="founder-top">
                       <div className="founder-photo-shell">
@@ -970,7 +970,7 @@ const globalCss = `
     align-items: center;
     position: relative;
     isolation: isolate;
-    padding: 48px 0 32px;
+    padding: 48px 0 20px;
     border-bottom: 1px solid ${rgba(palette.white, 0.05)};
   }
 
@@ -1446,7 +1446,7 @@ const globalCss = `
   }
 
   .section-dark {
-    padding: 110px 0 0;
+    padding: 110px 0 20px;
     background: linear-gradient(
       180deg,
       ${rgba(palette.deepNavy, 0)} 0%,
@@ -1461,7 +1461,7 @@ const globalCss = `
 
   .work-section {
     padding-top: 90px;
-    padding-bottom: 18px;
+    padding-bottom: 20px;
   }
 
   .section-heading {
@@ -1537,6 +1537,12 @@ const globalCss = `
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 28px;
+    align-items: stretch;
+  }
+
+  .service-grid > div,
+  .service-card-wrap {
+    height: 100%;
   }
 
   .service-card,
@@ -1558,7 +1564,10 @@ const globalCss = `
   }
 
   .service-card {
-    min-height: 320px;
+    min-height: 360px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
     border-radius: 28px;
     padding: 38px;
   }
@@ -1596,7 +1605,7 @@ const globalCss = `
   }
 
   .section-mesh {
-    padding: 110px 0 0;
+    padding: 110px 0 20px;
   }
 
   .mesh-bg {
@@ -1914,10 +1923,19 @@ const globalCss = `
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 28px;
+    align-items: stretch;
+  }
+
+  .founder-grid-item,
+  .founder-reveal {
+    height: 100%;
   }
 
   .founder-card {
+    height: 100%;
     min-height: 100%;
+    display: flex;
+    flex-direction: column;
     border-radius: 30px;
     padding: 34px;
     position: relative;
@@ -2310,6 +2328,10 @@ const globalCss = `
     .stack-row-card {
       padding: 24px;
       border-radius: 22px;
+    }
+
+    .service-card {
+      min-height: auto;
     }
 
     .stack-row-card,
