@@ -201,7 +201,7 @@ export default function HomeClient() {
       ].join("\n")
     );
 
-    window.location.href = `mailto:info@nordiqblue.com?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:team@nordiqblue.com?subject=${subject}&body=${body}`;
     setIsContactOpen(false);
   };
 
@@ -416,7 +416,7 @@ export default function HomeClient() {
           <Reveal className="section-heading center narrow" delay={0.02}>
             <div className="eyebrow eyebrow-ice">FOUNDING LEADERSHIP</div>
             <h2 className="title title-center founder-title">
-              Built by leaders with deep roots in innovation, strategy, and the blue economy
+              Powered by leaders with deep roots in innovation, strategy, and the blue economy
             </h2>
             <p className="section-copy center-copy founder-intro">
               NordiQ Blue is shaped by leaders who combine strategic vision, operational
@@ -598,7 +598,7 @@ export default function HomeClient() {
                     Send message
                   </button>
                   <p className="contact-note">
-                    This opens your email app with the message pre-filled to info@nordiqblue.com.
+                    This opens your email app with the message pre-filled to team@nordiqblue.com.
                   </p>
                 </div>
               </form>
@@ -641,8 +641,7 @@ export default function HomeClient() {
             <div>
               <div className="footer-heading">Contact</div>
               <div className="footer-links">
-                <span>Stockholm, Sweden</span>
-                <a href="mailto:info@nordiqblue.com">info@nordiqblue.com</a>
+                <a href="mailto:team@nordiqblue.com">team@nordiqblue.com</a>
                 <span>LinkedIn</span>
               </div>
             </div>
