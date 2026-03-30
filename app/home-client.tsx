@@ -87,8 +87,10 @@ function Reveal({ children, delay = 0, className }: RevealProps) {
 export default function HomeClient() {
   const gatewaysSectionRef = useRef<HTMLElement | null>(null);
   const gatewayImageRef = useRef<HTMLDivElement | null>(null);
+  const heroHeaderRef = useRef<HTMLDivElement | null>(null);
   const firstContactFieldRef = useRef<HTMLInputElement | null>(null);
   const [isContactOpen, setIsContactOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [contactForm, setContactForm] = useState({
     name: "",
     company: "",
@@ -165,6 +167,44 @@ export default function HomeClient() {
     };
   }, [isContactOpen]);
 
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 1120) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+
+    const handlePointerDown = (event: MouseEvent | TouchEvent) => {
+      const target = event.target as Node | null;
+      if (heroHeaderRef.current && target && !heroHeaderRef.current.contains(target)) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("mousedown", handlePointerDown);
+    window.addEventListener("touchstart", handlePointerDown, { passive: true });
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("mousedown", handlePointerDown);
+      window.removeEventListener("touchstart", handlePointerDown);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isMobileMenuOpen]);
+
   const openContactForm = () => {
     setIsContactOpen(true);
   };
@@ -226,17 +266,32 @@ export default function HomeClient() {
         </div>
 
         <div className="shell hero-shell">
-          <div className="hero-header">
-            <a href="#" className="hero-home-link" aria-label="NordiQ Blue home">
-              <Image
-                src="/nordiqblue-logo-cropped.png"
-                alt="NordiQ Blue"
-                className="hero-logo"
-                width={496}
-                height={174}
-                priority
-              />
-            </a>
+          <div ref={heroHeaderRef} className="hero-header">
+            <div className="hero-header-bar">
+              <a href="#" className="hero-home-link" aria-label="NordiQ Blue home">
+                <Image
+                  src="/nordiqblue-logo-cropped.png"
+                  alt="NordiQ Blue"
+                  className="hero-logo"
+                  width={496}
+                  height={174}
+                  priority
+                />
+              </a>
+
+              <button
+                type="button"
+                className={`mobile-menu-button ${isMobileMenuOpen ? "open" : ""}`}
+                aria-label={isMobileMenuOpen ? "Close section menu" : "Open section menu"}
+                aria-expanded={isMobileMenuOpen}
+                aria-controls="mobile-section-navigation"
+                onClick={() => setIsMobileMenuOpen((current) => !current)}
+              >
+                <span className="mobile-menu-button-line" aria-hidden />
+                <span className="mobile-menu-button-line" aria-hidden />
+                <span className="mobile-menu-button-line" aria-hidden />
+              </button>
+            </div>
 
             <nav className="hero-top-nav" aria-label="Section navigation">
               {sectionJumpLinks.map((item) => (
@@ -245,6 +300,25 @@ export default function HomeClient() {
                 </a>
               ))}
             </nav>
+
+            <div className={`mobile-nav-panel ${isMobileMenuOpen ? "open" : ""}`}>
+              <nav
+                id="mobile-section-navigation"
+                className="mobile-nav"
+                aria-label="Mobile section navigation"
+              >
+                {sectionJumpLinks.map((item) => (
+                  <a
+                    key={`mobile-${item.href}`}
+                    href={item.href}
+                    className="mobile-nav-link"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {item.label}
+                  </a>
+                ))}
+              </nav>
+            </div>
           </div>
 
           <Reveal className="hero-inner">
@@ -1004,6 +1078,18 @@ const globalCss = `
     display: none;
   }
 
+  .hero-header-bar {
+    position: static;
+  }
+
+  .mobile-menu-button {
+    display: none;
+  }
+
+  .mobile-nav-panel {
+    display: none;
+  }
+
   .hero-home-link {
     display: inline-flex;
     align-items: flex-start;
@@ -1058,6 +1144,137 @@ const globalCss = `
     transform: translateY(-1px);
     color: ${palette.white};
     opacity: 1;
+  }
+
+  .mobile-menu-button {
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    padding: 0;
+    border-radius: 16px;
+    border: 1px solid ${rgba(palette.white, 0.14)};
+    background:
+      linear-gradient(180deg, ${rgba(palette.white, 0.11)} 0%, ${rgba(palette.white, 0.06)} 100%),
+      ${rgba(palette.deepNavy, 0.34)};
+    box-shadow:
+      0 18px 34px ${rgba(palette.deepNavy, 0.32)},
+      inset 0 1px 0 ${rgba(palette.white, 0.12)};
+    color: ${palette.white};
+    cursor: pointer;
+    transition:
+      transform 0.22s ease,
+      border-color 0.22s ease,
+      background 0.22s ease,
+      box-shadow 0.22s ease;
+  }
+
+  .mobile-menu-button:hover {
+    transform: translateY(-1px);
+    border-color: ${rgba(palette.iceBlue, 0.4)};
+  }
+
+  .mobile-menu-button-line {
+    display: block;
+    width: 20px;
+    height: 2px;
+    border-radius: 999px;
+    background: ${palette.white};
+    transition:
+      transform 0.22s ease,
+      opacity 0.22s ease,
+      background 0.22s ease;
+  }
+
+  .mobile-menu-button {
+    position: relative;
+  }
+
+  .mobile-menu-button .mobile-menu-button-line:nth-child(1) {
+    position: absolute;
+    top: 17px;
+  }
+
+  .mobile-menu-button .mobile-menu-button-line:nth-child(2) {
+    position: absolute;
+    top: 25px;
+  }
+
+  .mobile-menu-button .mobile-menu-button-line:nth-child(3) {
+    position: absolute;
+    top: 33px;
+  }
+
+  .mobile-menu-button.open .mobile-menu-button-line:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+  }
+
+  .mobile-menu-button.open .mobile-menu-button-line:nth-child(2) {
+    opacity: 0;
+  }
+
+  .mobile-menu-button.open .mobile-menu-button-line:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+  }
+
+  .mobile-nav-panel {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    width: min(340px, 100%);
+    padding: 14px;
+    border-radius: 24px;
+    border: 1px solid ${rgba(palette.white, 0.12)};
+    background:
+      linear-gradient(180deg, ${rgba(palette.white, 0.12)} 0%, ${rgba(palette.white, 0.06)} 100%),
+      ${rgba(palette.deepNavy, 0.82)};
+    box-shadow:
+      0 26px 60px ${rgba(palette.deepNavy, 0.34)},
+      inset 0 1px 0 ${rgba(palette.white, 0.1)};
+    backdrop-filter: blur(16px);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-8px);
+    transition:
+      opacity 0.22s ease,
+      transform 0.22s ease;
+    z-index: 8;
+  }
+
+  .mobile-nav-panel.open {
+    display: block;
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  .mobile-nav {
+    display: grid;
+    gap: 8px;
+  }
+
+  .mobile-nav-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 48px;
+    padding: 0 16px;
+    border-radius: 16px;
+    color: ${rgba(palette.white, 0.94)};
+    background: ${rgba(palette.white, 0.05)};
+    font-size: 0.98rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    transition:
+      transform 0.22s ease,
+      background 0.22s ease,
+      color 0.22s ease;
+  }
+
+  .mobile-nav-link:hover {
+    transform: translateY(-1px);
+    background: ${rgba(palette.iceBlue, 0.12)};
+    color: ${palette.white};
   }
 
   .hero-inner {
@@ -2245,38 +2462,67 @@ const globalCss = `
 
 
   @media (max-width: 1120px) {
+    .hero {
+      min-height: auto;
+      padding-top: 28px;
+      padding-bottom: 70px;
+    }
+
+    .hero-shell {
+      min-height: auto;
+      justify-content: flex-start;
+      gap: 24px;
+    }
+
     .hero-header {
       width: 100%;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 16px;
       position: relative;
       top: auto;
       left: auto;
       right: auto;
+      min-height: 0;
+      z-index: 12;
     }
 
     .hero-header::after {
       display: none;
     }
 
+    .hero-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      width: 100%;
+      position: relative;
+      z-index: 9;
+    }
+
     .hero-home-link {
-      width: auto;
-      flex: 0 0 auto;
+      position: relative;
+      left: auto;
+      top: auto;
+      width: min(220px, 62vw);
+      max-width: 100%;
+      flex: 0 1 auto;
+    }
+
+    .hero-logo {
+      width: 100%;
+      height: auto;
     }
 
     .hero-top-nav {
-      width: 100%;
-      gap: 18px;
-      justify-content: flex-start;
-      max-width: none;
-      margin: 0;
-      padding-top: 0;
-      transform: none;
+      display: none;
     }
 
-    .hero-top-nav-pill {
-      font-size: 0.96rem;
+    .mobile-menu-button {
+      display: inline-flex;
+      flex: 0 0 auto;
+    }
+
+    .mobile-nav-panel {
+      display: block;
     }
 
     .contact-panel {
@@ -2322,15 +2568,49 @@ const globalCss = `
       border-left: 1px solid ${rgba(palette.iceBlue, 0.1)};
       margin: 0 20px;
     }
-
-    .hero {
-      min-height: auto;
-      padding-top: 100px;
-      padding-bottom: 70px;
-    }
   }
 
   @media (max-width: 760px) {
+    .hero-header-bar {
+      gap: 12px;
+    }
+
+    .hero-home-link {
+      width: min(200px, 68vw);
+    }
+
+    .mobile-menu-button {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+    }
+
+    .mobile-menu-button .mobile-menu-button-line:nth-child(1) {
+      top: 15px;
+    }
+
+    .mobile-menu-button .mobile-menu-button-line:nth-child(2) {
+      top: 23px;
+    }
+
+    .mobile-menu-button .mobile-menu-button-line:nth-child(3) {
+      top: 31px;
+    }
+
+    .mobile-nav-panel {
+      top: calc(100% + 10px);
+      width: min(300px, 100%);
+      padding: 12px;
+      border-radius: 20px;
+    }
+
+    .mobile-nav-link {
+      min-height: 46px;
+      padding: 0 14px;
+      font-size: 0.92rem;
+      line-height: 1.2;
+    }
+
     .contact-overlay {
       padding: 16px 12px;
       align-items: start;
@@ -2376,39 +2656,6 @@ const globalCss = `
 
     .gateway-visual-frame {
       margin: 0 12px;
-    }
-
-    .hero-header {
-      gap: 14px;
-    }
-
-    .hero-top-nav {
-      width: 100%;
-      justify-content: flex-start;
-      flex-wrap: nowrap;
-      overflow-x: auto;
-      gap: 18px;
-      max-width: none;
-      margin: 0;
-      margin-bottom: 0;
-      padding-top: 0;
-      padding-bottom: 4px;
-      transform: none;
-      scrollbar-width: none;
-    }
-
-    .hero-top-nav::-webkit-scrollbar {
-      display: none;
-    }
-
-    .hero-top-nav-pill {
-      padding: 0;
-      font-size: 0.95rem;
-      flex: 0 0 auto;
-    }
-
-    .hero-logo {
-      width: min(250px, 60vw);
     }
 
     .hero-inner {
